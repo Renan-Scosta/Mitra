@@ -1,0 +1,33 @@
+# ============================================================
+# Mitra — Application Configuration Template
+# ============================================================
+# Copy this file to application.properties and fill in the values,
+# OR set the corresponding environment variables.
+# ============================================================
+
+spring.application.name=mitra
+
+# ============================================================
+# DataSource - PostgreSQL
+# ============================================================
+# Environment variables: DB_URL, DB_USERNAME, DB_PASSWORD
+spring.datasource.url=${DB_URL:jdbc:postgresql://localhost:5432/mitra}
+spring.datasource.username=${DB_USERNAME:postgres}
+spring.datasource.password=${DB_PASSWORD}
+spring.datasource.driver-class-name=org.postgresql.Driver
+
+# ============================================================
+# JPA / Hibernate
+# ============================================================
+spring.jpa.hibernate.ddl-auto=update
+spring.jpa.show-sql=true
+spring.jpa.properties.hibernate.format_sql=true
+
+# ============================================================
+# Google OAuth2
+# ============================================================
+# Environment variables: GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET
+# Get these from https://console.cloud.google.com/apis/credentials
+spring.security.oauth2.client.registration.google.client-id=${GOOGLE_CLIENT_ID}
+spring.security.oauth2.client.registration.google.client-secret=${GOOGLE_CLIENT_SECRET}
+spring.security.oauth2.client.registration.google.scope=email,profile
