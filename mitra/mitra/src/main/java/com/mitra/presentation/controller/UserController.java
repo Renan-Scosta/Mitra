@@ -1,13 +1,13 @@
 package com.mitra.presentation.controller;
 
 import com.mitra.application.usecase.CalculateBmrUseCase;
+import com.mitra.application.usecase.RegisterUserUseCase;
+import com.mitra.presentation.dto.request.CreateUserRequestDto;
 import com.mitra.presentation.dto.response.BmrResponseDto;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
+import java.net.URI;
 import java.time.LocalDateTime;
 
 @RestController
@@ -15,9 +15,17 @@ import java.time.LocalDateTime;
 public class UserController {
 
     private final CalculateBmrUseCase calculateBmrUseCase;
+    private final RegisterUserUseCase registerUserUseCase;
 
-    public UserController(CalculateBmrUseCase calculateBmrUseCase) {
+    public UserController(CalculateBmrUseCase calculateBmrUseCase, RegisterUserUseCase registerUserUseCase) {
         this.calculateBmrUseCase = calculateBmrUseCase;
+        this.registerUserUseCase = registerUserUseCase;
+    }
+
+    @PostMapping
+    public ResponseEntity<Void> registerUser(@RequestBody CreateUserRequestDto request) {
+        Long userId = registerUserUseCase.execute(request);
+        return ResponseEntity.created(URI.create("/api/v1/users/" + userId)).build();
     }
 
     @GetMapping("/{userId}/bmr")
@@ -27,3 +35,4 @@ public class UserController {
         return ResponseEntity.ok(response);
     }
 }
+
