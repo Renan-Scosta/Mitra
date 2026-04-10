@@ -2,6 +2,8 @@ package com.mitra.presentation.controller;
 
 import com.mitra.application.usecase.LogSetRecordUseCase;
 import com.mitra.application.usecase.StartWorkoutSessionUseCase;
+import com.mitra.application.usecase.FinishWorkoutSessionUseCase;
+import com.mitra.application.usecase.GetWorkoutSessionUseCase;
 import com.mitra.presentation.dto.request.LogSetRequestDto;
 import com.mitra.presentation.dto.request.StartSessionRequestDto;
 import com.mitra.presentation.dto.response.SetRecordResponseDto;
@@ -20,11 +22,17 @@ public class WorkoutSessionController {
 
     private final StartWorkoutSessionUseCase startWorkoutSessionUseCase;
     private final LogSetRecordUseCase logSetRecordUseCase;
+    private final FinishWorkoutSessionUseCase finishWorkoutSessionUseCase;
+    private final GetWorkoutSessionUseCase getWorkoutSessionUseCase;
 
     public WorkoutSessionController(StartWorkoutSessionUseCase startWorkoutSessionUseCase,
-                                    LogSetRecordUseCase logSetRecordUseCase) {
+                                    LogSetRecordUseCase logSetRecordUseCase,
+                                    FinishWorkoutSessionUseCase finishWorkoutSessionUseCase,
+                                    GetWorkoutSessionUseCase getWorkoutSessionUseCase) {
         this.startWorkoutSessionUseCase = startWorkoutSessionUseCase;
         this.logSetRecordUseCase = logSetRecordUseCase;
+        this.finishWorkoutSessionUseCase = finishWorkoutSessionUseCase;
+        this.getWorkoutSessionUseCase = getWorkoutSessionUseCase;
     }
 
     @Operation(summary = "Start a new workout session", description = "Initiates a session to execute a specific routine")
@@ -43,5 +51,21 @@ public class WorkoutSessionController {
             @RequestBody LogSetRequestDto request) {
         SetRecordResponseDto response = logSetRecordUseCase.execute(sessionId, request);
         return ResponseEntity.ok(response);
+    }
+
+    @Operation(summary = "Finish a workout session", description = "Marks the session as finished and calculates summary statistics")
+    @ApiResponse(responseCode = "200", description = "Session finished successfully")
+    @PostMapping("/{sessionId}/finish")
+    public ResponseEntity<com.mitra.presentation.dto.response.SessionSummaryResponseDto> finishSession(@PathVariable Long sessionId) {
+        com.mitra.presentation.dto.response.SessionSummaryResponseDto summary = finishWorkoutSessionUseCase.execute(sessionId);
+        return ResponseEntity.ok(summary);
+    }
+
+    @Operation(summary = "Get session details", description = "Retrieves full details of a session, including all logged sets")
+    @ApiResponse(responseCode = "200", description = "Session retrieved successfully")
+    @GetMapping("/{sessionId}")
+    public ResponseEntity<com.mitra.presentation.dto.response.WorkoutSessionResponseDto> getSession(@PathVariable Long sessionId) {
+        com.mitra.presentation.dto.response.WorkoutSessionResponseDto sessionDto = getWorkoutSessionUseCase.execute(sessionId);
+        return ResponseEntity.ok(sessionDto);
     }
 }
