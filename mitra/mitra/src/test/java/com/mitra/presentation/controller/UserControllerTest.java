@@ -8,10 +8,15 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
+import org.springframework.http.MediaType;
+
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 
 @WebMvcTest(UserController.class)
 @ActiveProfiles("test")
@@ -22,6 +27,9 @@ class UserControllerTest {
 
     @MockitoBean
     private CalculateBmrUseCase calculateBmrUseCase;
+
+    @MockitoBean
+    private com.mitra.application.usecase.RegisterUserUseCase registerUserUseCase;
 
     @Test
     void shouldReturnBmrWhenUserExists() throws Exception {
@@ -41,4 +49,27 @@ class UserControllerTest {
         mockMvc.perform(get("/api/v1/users/99/bmr"))
                 .andExpect(status().isNotFound());
     }
+
+    @Test
+    void shouldCreateUserAndReturn201() throws Exception {
+        when(registerUserUseCase.execute(any())).thenReturn(1L);
+
+        String payload = """
+                {
+                    "name": "Test User",
+                    "email": "test@mitra.com",
+                    "birthDate": "2000-01-01",
+                    "gender": "MALE",
+                    "heightCm": 180,
+                    "initialWeightKg": 80.5
+                }
+                """;
+
+        mockMvc.perform(post("/api/v1/users")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(payload))
+                .andExpect(status().isCreated())
+                .andExpect(header().exists("Location"));
+    }
 }
+
