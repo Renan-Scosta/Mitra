@@ -24,8 +24,11 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 
+import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
+
 @WebMvcTest(WorkoutSessionController.class)
 @ActiveProfiles("test")
+@AutoConfigureMockMvc(addFilters = false)
 class WorkoutSessionControllerTest {
 
     @Autowired
@@ -42,6 +45,12 @@ class WorkoutSessionControllerTest {
 
     @MockitoBean
     private GetWorkoutSessionUseCase getWorkoutSessionUseCase;
+
+    @MockitoBean
+    private com.mitra.application.port.out.UserRepositoryPort userRepositoryPort;
+
+    @MockitoBean
+    private com.mitra.infrastructure.security.TokenService tokenService;
 
     @Test
     void shouldStartSessionAndReturn201() throws Exception {

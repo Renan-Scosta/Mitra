@@ -18,8 +18,11 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 
+import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
+
 @WebMvcTest(UserController.class)
 @ActiveProfiles("test")
+@AutoConfigureMockMvc(addFilters = false)
 class UserControllerTest {
 
     @Autowired
@@ -30,6 +33,12 @@ class UserControllerTest {
 
     @MockitoBean
     private com.mitra.application.usecase.RegisterUserUseCase registerUserUseCase;
+
+    @MockitoBean
+    private com.mitra.application.port.out.UserRepositoryPort userRepositoryPort;
+
+    @MockitoBean
+    private com.mitra.infrastructure.security.TokenService tokenService;
 
     @Test
     void shouldReturnBmrWhenUserExists() throws Exception {
