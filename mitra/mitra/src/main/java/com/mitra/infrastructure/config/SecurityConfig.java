@@ -16,15 +16,13 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
+            .csrf(csrf -> csrf.disable())
             .authorizeHttpRequests(authorize -> authorize
                 .requestMatchers("/v3/api-docs", "/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html").permitAll()
+                .requestMatchers("/api/v1/**").permitAll()
                 .anyRequest().authenticated()
             )
             .oauth2Login(Customizer.withDefaults());
-
-        // Note: For POST requests (like our user registration) to work easily from Swagger or external clients before CSRF setup:
-        // We'll leave CSRF default (enabled) for now as requested, but if POST fails in Swagger, 
-        // we might need to disable CSRF later.
         
         return http.build();
     }
