@@ -41,6 +41,13 @@ public class WorkoutSession {
         return endTime == null;
     }
 
+    public void finish() {
+        if (!isActive()) {
+            throw new IllegalStateException("WorkoutSession is already finished.");
+        }
+        this.endTime = LocalDateTime.now();
+    }
+
     public boolean isAbandoned() {
         if (!isActive()) return false;
         return Duration.between(startTime, LocalDateTime.now()).compareTo(ABANDONED_THRESHOLD) >= 0;
