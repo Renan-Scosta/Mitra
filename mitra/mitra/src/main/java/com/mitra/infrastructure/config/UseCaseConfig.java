@@ -22,4 +22,11 @@ public class UseCaseConfig {
             BmrCalculator bmrCalculator) {
         return new CalculateBmrUseCase(userRepositoryPort, bodyMeasurementRepositoryPort, bmrCalculator);
     }
+
+    @Bean
+    public com.mitra.application.usecase.RegisterUserUseCase registerUserUseCase(
+            UserRepositoryPort userRepositoryPort,
+            BodyMeasurementRepositoryPort bodyMeasurementRepositoryPort) {
+        return new com.mitra.application.usecase.impl.RegisterUserUseCaseImpl(userRepositoryPort, bodyMeasurementRepositoryPort);
+    }
 }
