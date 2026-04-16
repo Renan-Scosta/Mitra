@@ -35,11 +35,12 @@ public class WorkoutSessionController {
         this.getWorkoutSessionUseCase = getWorkoutSessionUseCase;
     }
 
-    @Operation(summary = "Start a new workout session", description = "Initiates a session to execute a specific routine")
+    @Operation(summary = "Start a new workout session", description = "Initiates a session to execute a specific routine for the authenticated user")
     @ApiResponse(responseCode = "201", description = "Session started successfully")
     @PostMapping
-    public ResponseEntity<Void> startSession(@RequestBody StartSessionRequestDto request) {
-        Long sessionId = startWorkoutSessionUseCase.execute(request);
+    public ResponseEntity<Void> startSession(@RequestBody StartSessionRequestDto request,
+                                             @org.springframework.security.core.annotation.AuthenticationPrincipal com.mitra.domain.model.User currentUser) {
+        Long sessionId = startWorkoutSessionUseCase.execute(currentUser.getId(), request);
         return ResponseEntity.created(URI.create("/api/v1/sessions/" + sessionId)).build();
     }
 

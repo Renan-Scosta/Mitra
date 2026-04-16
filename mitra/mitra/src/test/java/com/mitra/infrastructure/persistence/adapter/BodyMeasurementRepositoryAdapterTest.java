@@ -40,6 +40,7 @@ class BodyMeasurementRepositoryAdapterTest {
         User user = User.builder()
                 .email("body@mitra.com")
                 .name("Body Test User")
+                .password("hashed_password")
                 .birthDate(LocalDate.of(1995, 6, 20))
                 .gender(Gender.FEMALE)
                 .heightCm(165)

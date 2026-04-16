@@ -23,12 +23,17 @@ public class StartWorkoutSessionUseCaseImpl implements StartWorkoutSessionUseCas
     }
 
     @Override
-    public Long execute(StartSessionRequestDto request) {
+    public Long execute(Long userId, StartSessionRequestDto request) {
         WorkoutRoutine routine = workoutRoutineRepositoryPort.findById(request.routineId())
                 .orElseThrow(() -> new IllegalArgumentException("Routine not found"));
         
+        // Ensure isolation (Routine belongs to the user)
+        if (!routine.getUserId().equals(userId)) {
+            throw new SecurityException("You do not have permission to execute this routine");
+        }
+        
         WorkoutSession session = WorkoutSession.builder()
-                .userId(request.userId())
+                .userId(userId)
                 .routineId(routine.getId())
                 .startTime(LocalDateTime.now())
                 .build();

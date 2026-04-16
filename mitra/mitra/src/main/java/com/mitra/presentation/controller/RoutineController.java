@@ -34,20 +34,21 @@ public class RoutineController {
         this.addRoutineExerciseUseCase = addRoutineExerciseUseCase;
     }
 
-    @Operation(summary = "Create a new routine", description = "Creates a new empty workout routine for a user")
+    @Operation(summary = "Create a new routine", description = "Creates a new empty workout routine for the authenticated user")
     @ApiResponse(responseCode = "201", description = "Routine successfully created")
     @ApiResponse(responseCode = "400", description = "Invalid request data")
     @PostMapping
-    public ResponseEntity<Void> createRoutine(@RequestBody CreateRoutineRequestDto request) {
-        Long routineId = createWorkoutRoutineUseCase.execute(request);
+    public ResponseEntity<Void> createRoutine(@RequestBody CreateRoutineRequestDto request,
+                                              @org.springframework.security.core.annotation.AuthenticationPrincipal com.mitra.domain.model.User currentUser) {
+        Long routineId = createWorkoutRoutineUseCase.execute(currentUser.getId(), request);
         return ResponseEntity.created(URI.create("/api/v1/routines/" + routineId)).build();
     }
 
-    @Operation(summary = "Get user's routines", description = "Retrieves all workout routines belonging to a specific user")
+    @Operation(summary = "Get my routines", description = "Retrieves all workout routines belonging to the authenticated user")
     @ApiResponse(responseCode = "200", description = "Routines retrieved successfully")
-    @GetMapping("/user/{userId}")
-    public ResponseEntity<List<RoutineResponseDto>> getUserRoutines(@PathVariable Long userId) {
-        List<RoutineResponseDto> routines = getWorkoutRoutinesUseCase.execute(userId);
+    @GetMapping
+    public ResponseEntity<List<RoutineResponseDto>> getMyRoutines(@org.springframework.security.core.annotation.AuthenticationPrincipal com.mitra.domain.model.User currentUser) {
+        List<RoutineResponseDto> routines = getWorkoutRoutinesUseCase.execute(currentUser.getId());
         return ResponseEntity.ok(routines);
     }
 

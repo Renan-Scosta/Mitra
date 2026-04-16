@@ -30,17 +30,21 @@ public class UserController {
     @ApiResponse(responseCode = "201", description = "User successfully created")
     @ApiResponse(responseCode = "400", description = "Invalid request data")
     @PostMapping
-    public ResponseEntity<Void> registerUser(@RequestBody CreateUserRequestDto request) {
+    public ResponseEntity<Object> registerUser(@RequestBody CreateUserRequestDto request) {
+        if (!request.password().equals(request.confirmPassword())) {
+            return ResponseEntity.badRequest().body("Passwords do not match");
+        }
+        
         Long userId = registerUserUseCase.execute(request);
         return ResponseEntity.created(URI.create("/api/v1/users/" + userId)).build();
     }
 
-    @Operation(summary = "Calculate BMR", description = "Calculates the current Basal Metabolic Rate based on the Harris-Benedict formula using the last recorded weight")
+    @Operation(summary = "Calculate my BMR", description = "Calculates the current Basal Metabolic Rate based on the Harris-Benedict formula using the last recorded weight for the authenticated user")
     @ApiResponse(responseCode = "200", description = "Calculation completed successfully")
     @ApiResponse(responseCode = "404", description = "User not found")
-    @GetMapping("/{userId}/bmr")
-    public ResponseEntity<BmrResponseDto> getBmr(@PathVariable Long userId) {
-        double bmr = calculateBmrUseCase.execute(userId);
+    @GetMapping("/me/bmr")
+    public ResponseEntity<BmrResponseDto> getMyBmr(@org.springframework.security.core.annotation.AuthenticationPrincipal com.mitra.domain.model.User currentUser) {
+        double bmr = calculateBmrUseCase.execute(currentUser.getId());
         BmrResponseDto response = new BmrResponseDto(bmr, LocalDateTime.now());
         return ResponseEntity.ok(response);
     }

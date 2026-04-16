@@ -21,6 +21,7 @@ public class User {
     private LocalDate birthDate;
     private Gender gender;
     private int heightCm;
+    private String password;
 
     public int getAge() {
         return Period.between(birthDate, LocalDate.now()).getYears();

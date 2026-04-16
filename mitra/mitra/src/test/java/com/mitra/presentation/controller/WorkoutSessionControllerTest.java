@@ -4,16 +4,21 @@ import com.mitra.application.usecase.LogSetRecordUseCase;
 import com.mitra.application.usecase.StartWorkoutSessionUseCase;
 import com.mitra.application.usecase.FinishWorkoutSessionUseCase;
 import com.mitra.application.usecase.GetWorkoutSessionUseCase;
+import com.mitra.domain.model.User;
 import com.mitra.presentation.dto.response.SetRecordResponseDto;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
 import org.springframework.http.MediaType;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.math.BigDecimal;
+import java.util.Collections;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
@@ -52,13 +57,19 @@ class WorkoutSessionControllerTest {
     @MockitoBean
     private com.mitra.infrastructure.security.TokenService tokenService;
 
+    @BeforeEach
+    void setUp() {
+        User testUser = User.builder().id(1L).email("test@mitra.com").name("Test").password("x").build();
+        var auth = new UsernamePasswordAuthenticationToken(testUser, null, Collections.emptyList());
+        SecurityContextHolder.getContext().setAuthentication(auth);
+    }
+
     @Test
     void shouldStartSessionAndReturn201() throws Exception {
-        when(startWorkoutSessionUseCase.execute(any())).thenReturn(100L);
+        when(startWorkoutSessionUseCase.execute(any(), any())).thenReturn(100L);
 
         String payload = """
                 {
-                    "userId": 1,
                     "routineId": 10
                 }
                 """;

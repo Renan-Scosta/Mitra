@@ -20,15 +20,18 @@ public class AuthController {
 
     private final UserRepositoryPort userRepositoryPort;
     private final TokenService tokenService;
+    private final org.springframework.security.crypto.password.PasswordEncoder passwordEncoder;
 
-    public AuthController(UserRepositoryPort userRepositoryPort, TokenService tokenService) {
+    public AuthController(UserRepositoryPort userRepositoryPort, TokenService tokenService,
+                          org.springframework.security.crypto.password.PasswordEncoder passwordEncoder) {
         this.userRepositoryPort = userRepositoryPort;
         this.tokenService = tokenService;
+        this.passwordEncoder = passwordEncoder;
     }
 
-    @Operation(summary = "Login an existing user", description = "For the MVP, receives the email to authenticate and return a JWT")
+    @Operation(summary = "Login an existing user", description = "Receives email and password to authenticate and return a JWT")
     @ApiResponse(responseCode = "200", description = "Authentication successful and token returned")
-    @ApiResponse(responseCode = "401", description = "Unauthorized - User does not exist")
+    @ApiResponse(responseCode = "401", description = "Unauthorized - Invalid credentials")
     @PostMapping("/login")
     public ResponseEntity<TokenResponseDto> login(@RequestBody LoginRequestDto request) {
         Optional<User> userOpt = userRepositoryPort.findByEmail(request.email());
@@ -38,6 +41,10 @@ public class AuthController {
         }
         
         User user = userOpt.get();
+        if (!passwordEncoder.matches(request.password(), user.getPassword())) {
+            return ResponseEntity.status(401).build();
+        }
+        
         String token = tokenService.generateToken(user.getEmail(), user.getId());
         
         return ResponseEntity.ok(new TokenResponseDto(token));

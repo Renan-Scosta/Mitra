@@ -16,9 +16,9 @@ public class CreateWorkoutRoutineUseCaseImpl implements CreateWorkoutRoutineUseC
     }
 
     @Override
-    public Long execute(CreateRoutineRequestDto request) {
+    public Long execute(Long userId, CreateRoutineRequestDto request) {
         WorkoutRoutine routine = WorkoutRoutine.builder()
-                .userId(request.userId())
+                .userId(userId)
                 .name(request.name())
                 .build();
                 

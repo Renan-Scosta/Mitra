@@ -19,6 +19,10 @@ public record CreateUserRequestDto(
         @Schema(description = "Height in centimeters", example = "180")
         int heightCm,
         @Schema(description = "Current weight in kg", example = "85.5")
-        BigDecimal initialWeightKg
+        BigDecimal initialWeightKg,
+        @Schema(description = "User's password", example = "secret123")
+        String password,
+        @Schema(description = "Password confirmation", example = "secret123")
+        String confirmPassword
 ) {
 }

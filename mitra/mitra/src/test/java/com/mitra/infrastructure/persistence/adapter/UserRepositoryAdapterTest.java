@@ -33,6 +33,7 @@ class UserRepositoryAdapterTest {
         User user = User.builder()
                 .email("test@mitra.com")
                 .name("Test User")
+                .password("hashed_password")
                 .birthDate(LocalDate.of(2000, 1, 15))
                 .gender(Gender.MALE)
                 .heightCm(180)

@@ -1,14 +1,20 @@
 package com.mitra.presentation.controller;
 
 import com.mitra.application.usecase.CalculateBmrUseCase;
+import com.mitra.domain.model.User;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
+import org.springframework.http.MediaType;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
-import org.springframework.http.MediaType;
+import java.util.Collections;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
@@ -17,8 +23,6 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
-
-import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 
 @WebMvcTest(UserController.class)
 @ActiveProfiles("test")
@@ -40,11 +44,18 @@ class UserControllerTest {
     @MockitoBean
     private com.mitra.infrastructure.security.TokenService tokenService;
 
+    @BeforeEach
+    void setUp() {
+        User testUser = User.builder().id(1L).email("test@mitra.com").name("Test").password("x").build();
+        var auth = new UsernamePasswordAuthenticationToken(testUser, null, Collections.emptyList());
+        SecurityContextHolder.getContext().setAuthentication(auth);
+    }
+
     @Test
     void shouldReturnBmrWhenUserExists() throws Exception {
         when(calculateBmrUseCase.execute(1L)).thenReturn(1850.5);
 
-        mockMvc.perform(get("/api/v1/users/1/bmr"))
+        mockMvc.perform(get("/api/v1/users/me/bmr"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.bmr").value(1850.5))
                 .andExpect(jsonPath("$.calculatedAt").exists());
@@ -52,10 +63,10 @@ class UserControllerTest {
 
     @Test
     void shouldReturn404WhenUserOrMeasurementNotFound() throws Exception {
-        when(calculateBmrUseCase.execute(99L))
-                .thenThrow(new IllegalArgumentException("User not found: 99"));
+        when(calculateBmrUseCase.execute(1L))
+                .thenThrow(new IllegalArgumentException("User not found: 1"));
 
-        mockMvc.perform(get("/api/v1/users/99/bmr"))
+        mockMvc.perform(get("/api/v1/users/me/bmr"))
                 .andExpect(status().isNotFound());
     }
 
@@ -70,7 +81,9 @@ class UserControllerTest {
                     "birthDate": "2000-01-01",
                     "gender": "MALE",
                     "heightCm": 180,
-                    "initialWeightKg": 80.5
+                    "initialWeightKg": 80.5,
+                    "password": "pass",
+                    "confirmPassword": "pass"
                 }
                 """;
 
@@ -81,4 +94,3 @@ class UserControllerTest {
                 .andExpect(header().exists("Location"));
     }
 }
-

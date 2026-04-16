@@ -32,7 +32,7 @@ class StartWorkoutSessionUseCaseImplTest {
 
     @Test
     void shouldStartSessionSuccessfully() {
-        StartSessionRequestDto request = new StartSessionRequestDto(1L, 10L);
+        StartSessionRequestDto request = new StartSessionRequestDto(10L);
         WorkoutRoutine routine = WorkoutRoutine.builder().id(10L).userId(1L).build();
         
         when(workoutRoutineRepositoryPort.findById(10L)).thenReturn(Optional.of(routine));
@@ -47,7 +47,7 @@ class StartWorkoutSessionUseCaseImplTest {
                             .build();
                 });
 
-        Long sessionId = startWorkoutSessionUseCase.execute(request);
+        Long sessionId = startWorkoutSessionUseCase.execute(1L, request);
 
         assertNotNull(sessionId);
         assertEquals(100L, sessionId);
@@ -56,10 +56,10 @@ class StartWorkoutSessionUseCaseImplTest {
 
     @Test
     void shouldThrowExceptionWhenRoutineNotFound() {
-        StartSessionRequestDto request = new StartSessionRequestDto(1L, 99L);
+        StartSessionRequestDto request = new StartSessionRequestDto(99L);
         when(workoutRoutineRepositoryPort.findById(99L)).thenReturn(Optional.empty());
 
-        assertThrows(IllegalArgumentException.class, () -> startWorkoutSessionUseCase.execute(request));
+        assertThrows(IllegalArgumentException.class, () -> startWorkoutSessionUseCase.execute(1L, request));
         verify(workoutSessionRepositoryPort, never()).save(any());
     }
 }

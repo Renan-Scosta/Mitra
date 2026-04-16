@@ -13,12 +13,15 @@ public class RegisterUserUseCaseImpl implements RegisterUserUseCase {
 
     private final UserRepositoryPort userRepository;
     private final BodyMeasurementRepositoryPort bodyMeasurementRepository;
+    private final com.mitra.application.port.out.PasswordEncoderPort passwordEncoderPort;
 
     public RegisterUserUseCaseImpl(
             UserRepositoryPort userRepository,
-            BodyMeasurementRepositoryPort bodyMeasurementRepository) {
+            BodyMeasurementRepositoryPort bodyMeasurementRepository,
+            com.mitra.application.port.out.PasswordEncoderPort passwordEncoderPort) {
         this.userRepository = userRepository;
         this.bodyMeasurementRepository = bodyMeasurementRepository;
+        this.passwordEncoderPort = passwordEncoderPort;
     }
 
     @Override
@@ -26,6 +29,7 @@ public class RegisterUserUseCaseImpl implements RegisterUserUseCase {
         User user = User.builder()
                 .name(request.name())
                 .email(request.email())
+                .password(passwordEncoderPort.encode(request.password()))
                 .birthDate(request.birthDate())
                 .gender(request.gender())
                 .heightCm(request.heightCm())

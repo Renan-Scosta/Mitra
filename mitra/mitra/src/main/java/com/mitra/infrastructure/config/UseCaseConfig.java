@@ -26,7 +26,8 @@ public class UseCaseConfig {
     @Bean
     public com.mitra.application.usecase.RegisterUserUseCase registerUserUseCase(
             UserRepositoryPort userRepositoryPort,
-            BodyMeasurementRepositoryPort bodyMeasurementRepositoryPort) {
-        return new com.mitra.application.usecase.impl.RegisterUserUseCaseImpl(userRepositoryPort, bodyMeasurementRepositoryPort);
+            BodyMeasurementRepositoryPort bodyMeasurementRepositoryPort,
+            com.mitra.application.port.out.PasswordEncoderPort passwordEncoderPort) {
+        return new com.mitra.application.usecase.impl.RegisterUserUseCaseImpl(userRepositoryPort, bodyMeasurementRepositoryPort, passwordEncoderPort);
     }
 }

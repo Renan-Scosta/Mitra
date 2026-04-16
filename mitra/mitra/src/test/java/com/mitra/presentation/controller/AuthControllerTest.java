@@ -14,6 +14,7 @@ import org.springframework.test.web.servlet.MockMvc;
 
 import java.util.Optional;
 
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
@@ -35,15 +36,20 @@ class AuthControllerTest {
     @MockitoBean
     private TokenService tokenService;
 
+    @MockitoBean
+    private org.springframework.security.crypto.password.PasswordEncoder passwordEncoder;
+
     @Test
     void shouldReturnTokenWhenEmailExists() throws Exception {
         User user = User.builder().id(1L).email("test@mitra.com").build();
         when(userRepositoryPort.findByEmail("test@mitra.com")).thenReturn(Optional.of(user));
         when(tokenService.generateToken(eq("test@mitra.com"), eq(1L))).thenReturn("mock-jwt-token");
+        when(passwordEncoder.matches(anyString(), any())).thenReturn(true);
 
         String payload = """
                 {
-                    "email": "test@mitra.com"
+                    "email": "test@mitra.com",
+                    "password": "secret_password"
                 }
                 """;
 
@@ -60,7 +66,8 @@ class AuthControllerTest {
 
         String payload = """
                 {
-                    "email": "unknown@mitra.com"
+                    "email": "unknown@mitra.com",
+                    "password": "wrong_password"
                 }
                 """;
 
