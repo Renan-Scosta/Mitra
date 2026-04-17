@@ -108,6 +108,9 @@ Mitra-App/
         │   │   │       ├── LogSetRecordUseCase.java
         │   │   │       ├── FinishWorkoutSessionUseCase.java
         │   │   │       ├── GetWorkoutSessionUseCase.java
+        │   │   │       ├── GetUserSessionsUseCase.java
+        │   │   │       ├── CreateBodyMeasurementUseCase.java
+        │   │   │       ├── GetBodyMeasurementsUseCase.java
         │   │   │       └── impl/              ← Implementações concretas
         │   │   │
         │   │   ├── infrastructure/            ← CAMADA INFRASTRUCTURE (frameworks)
@@ -128,14 +131,15 @@ Mitra-App/
         │   │   │
         │   │   └── presentation/              ← CAMADA PRESENTATION (HTTP)
         │   │       ├── controller/
-        │   │       │   ├── AuthController.java           POST /api/v1/auth/login
-        │   │       │   ├── UserController.java           POST /api/v1/users, GET /me/bmr
-        │   │       │   ├── ExerciseController.java       CRUD exercises
-        │   │       │   ├── RoutineController.java        CRUD routines (tenant-isolated)
-        │   │       │   └── WorkoutSessionController.java sessions lifecycle
+        │   │       │   ├── AuthController.java                POST /api/v1/auth/login
+        │   │       │   ├── UserController.java                POST /api/v1/users, GET /me/bmr
+        │   │       │   ├── ExerciseController.java            CRUD exercises
+        │   │       │   ├── RoutineController.java             CRUD routines (tenant-isolated)
+        │   │       │   ├── WorkoutSessionController.java      sessions lifecycle + history
+        │   │       │   └── BodyMeasurementController.java     POST+GET /api/v1/measurements
         │   │       ├── dto/
-        │   │       │   ├── request/   (7 records)
-        │   │       │   └── response/  (8 records)
+        │   │       │   ├── request/   (8 records — all with Bean Validation)
+        │   │       │   └── response/  (9 records)
         │   │       └── exception/
         │   │           └── GlobalExceptionHandler.java
         │   │
@@ -146,14 +150,16 @@ Mitra-App/
         └── test/
             └── java/com/mitra/
                 ├── MitraApplicationTests.java             ← Context loads
-                ├── domain/service/BmrCalculatorTest.java   ← Unit test puro
+                ├── domain/
+                │   ├── model/UserTest, WorkoutSessionTest, BodyMeasurementTest
+                │   └── service/BmrCalculatorTest.java
                 ├── application/usecase/
-                │   ├── CalculateBmrUseCaseTest.java        ← Unit test
-                │   └── impl/                               ← 4 testes de use case
+                │   ├── CalculateBmrUseCaseTest.java
+                │   └── impl/  (10 use case tests)
                 ├── infrastructure/
-                │   ├── config/TestSecurityConfig.java      ← @TestConfiguration
-                │   └── persistence/adapter/                ← 2 testes @DataJpaTest
-                └── presentation/controller/                ← 5 testes @WebMvcTest
+                │   ├── config/TestSecurityConfig.java
+                │   └── persistence/adapter/  (7 adapter tests @DataJpaTest)
+                └── presentation/controller/  (6 controller tests @WebMvcTest)
 ```
 
 ---
