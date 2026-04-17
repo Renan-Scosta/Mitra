@@ -21,6 +21,10 @@ jobs:
           distribution: 'temurin'
           cache: 'maven'
 
+      - name: Make Maven Wrapper executable
+        run: chmod +x ./mvnw
+        working-directory: mitra/mitra
+
       - name: Run tests
         run: ./mvnw test --no-transfer-progress
         working-directory: mitra/mitra
