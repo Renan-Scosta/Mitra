@@ -84,7 +84,9 @@ Mitra-App/
         │   │   │   │       ├── Gender.java          (MALE, FEMALE)
         │   │   │   │       └── TrackingType.java     (WEIGHT_REPS, REPS_ONLY, TIME_ONLY)
         │   │   │   └── service/
-        │   │   │       └── BmrCalculator.java        ← Mifflin-St Jeor (puro, sem Spring)
+        │   │   │       ├── BmrCalculator.java        ← Mifflin-St Jeor (puro, sem Spring)
+        │   │   │       ├── CalorieCalculator.java    ← Cálculo MET (puro, sem Spring)
+        │   │   │       └── CalorieResult.java        ← Retorno do cálculo
         │   │   │
         │   │   ├── application/               ← CAMADA APPLICATION (orquestração)
         │   │   │   ├── port/out/              ← Interfaces de saída (driven)
@@ -109,6 +111,7 @@ Mitra-App/
         │   │   │       ├── FinishWorkoutSessionUseCase.java
         │   │   │       ├── GetWorkoutSessionUseCase.java
         │   │   │       ├── GetUserSessionsUseCase.java
+        │   │   │       ├── CalculateSessionCaloriesUseCase.java
         │   │   │       ├── CreateBodyMeasurementUseCase.java
         │   │   │       ├── GetBodyMeasurementsUseCase.java
         │   │   │       └── impl/              ← Implementações concretas
@@ -259,6 +262,7 @@ Adapta-se ao `TrackingType`: `weightKg` (null para REPS_ONLY/TIME_ONLY), `reps` 
 | `FinishWorkoutSessionUseCase` | `Long userId, Long sessionId` | `SessionSummaryResponseDto` | 🔒 **Ownership**: valida `session.userId == userId`, throws `SecurityException` |
 | `GetWorkoutSessionUseCase` | `Long userId, Long sessionId` | `WorkoutSessionResponseDto` | 🔒 **Ownership**: valida `session.userId == userId`, throws `SecurityException` |
 | `GetUserSessionsUseCase` | `Long userId` | `List<WorkoutSessionResponseDto>` | Histórico de sessões do user autenticado |
+| `CalculateSessionCaloriesUseCase` | `Long userId, Long sessionId` | `SessionCaloriesResponseDto` | 🔒 **Ownership**: valida, requer `BodyMeasurement` para retornar valor |
 | `CreateBodyMeasurementUseCase` | `Long userId, CreateBodyMeasurementRequestDto` | `BodyMeasurementResponseDto` | Calcula `leanMassKg` e `fatMassKg` derivados |
 | `GetBodyMeasurementsUseCase` | `Long userId` | `List<BodyMeasurementResponseDto>` | Histórico de medições do user autenticado |
 
@@ -298,6 +302,7 @@ Adapta-se ao `TrackingType`: `weightKg` (null para REPS_ONLY/TIME_ONLY), `reps` 
 | POST | `/{sessionId}/sets` | ✅ Bearer 🔒 | Registra uma série (ownership enforced) |
 | POST | `/{sessionId}/finish` | ✅ Bearer 🔒 | Finaliza sessão (ownership enforced) |
 | GET | `/{sessionId}` | ✅ Bearer 🔒 | Detalhes da sessão (ownership enforced) |
+| GET | `/{sessionId}/calories` | ✅ Bearer 🔒 | Calcula perda calórica (ownership enforced) |
 
 ### Body Measurements — `/api/v1/measurements`
 | Método | Path | Auth | Descrição |
@@ -344,12 +349,12 @@ O `DatabaseSeeder` (ativo apenas fora do perfil `test`) cria automaticamente:
 
 | Tipo | Quant | Anotação | Banco | O que testa |
 |---|---|---|---|---|
-| Unit (Domain) | 16 | Nenhuma | Nenhum | `BmrCalculator`, `User`, `WorkoutSession`, `BodyMeasurement` |
-| Unit (UseCase) | 28 | `@ExtendWith(MockitoExtension)` | Nenhum | Todos os 14 use cases + ownership violations |
+| Unit (Domain) | 21 | Nenhuma | Nenhum | `BmrCalculator`, `CalorieCalculator`, `User`, `WorkoutSession`, `BodyMeasurement` |
+| Unit (UseCase) | 32 | `@ExtendWith(MockitoExtension)` | Nenhum | Todos os 15 use cases + ownership violations |
 | Integration (Persistence) | 16 | `@DataJpaTest` | H2 | Todos os 8 Repository Adapters |
-| WebMvc (Controller) | 38 | `@WebMvcTest` | Nenhum | Auth, User, Exercise, Routine, Session, BodyMeasurement controllers |
+| WebMvc (Controller) | 40 | `@WebMvcTest` | Nenhum | Auth, User, Exercise, Routine, Session, BodyMeasurement controllers |
 | Context | 1 | `@SpringBootTest` | H2 | Verifica que o contexto Spring sobe |
-| **Total** | **99** | | | |
+| **Total** | **110** | | | |
 
 ### Configuração de teste
 - Perfil `test` ativo via `@ActiveProfiles("test")`
@@ -429,7 +434,7 @@ SecurityContextHolder.getContext().setAuthentication(auth);
 ## 14. Checklist Pós-Implementação
 
 ```
-[ ] 1. Todos os 99+ testes passando
+[ ] 1. Todos os 110+ testes passando
 [ ] 2. Swagger UI acessível em http://localhost:8080/swagger-ui/index.html
 [ ] 3. Login funciona com dev@mitra.com / 123456
 [ ] 4. Bearer Token funciona no Swagger (botão Authorize)
