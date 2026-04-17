@@ -1,6 +1,7 @@
 package com.mitra.presentation.controller;
 
 import com.mitra.application.usecase.FinishWorkoutSessionUseCase;
+import com.mitra.application.usecase.GetUserSessionsUseCase;
 import com.mitra.application.usecase.GetWorkoutSessionUseCase;
 import com.mitra.application.usecase.LogSetRecordUseCase;
 import com.mitra.application.usecase.StartWorkoutSessionUseCase;
@@ -19,6 +20,7 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.net.URI;
+import java.util.List;
 
 @Tag(name = "Workout Sessions", description = "Endpoints for executing and tracking workout routines")
 @RestController
@@ -29,15 +31,18 @@ public class WorkoutSessionController {
     private final LogSetRecordUseCase logSetRecordUseCase;
     private final FinishWorkoutSessionUseCase finishWorkoutSessionUseCase;
     private final GetWorkoutSessionUseCase getWorkoutSessionUseCase;
+    private final GetUserSessionsUseCase getUserSessionsUseCase;
 
     public WorkoutSessionController(StartWorkoutSessionUseCase startWorkoutSessionUseCase,
                                     LogSetRecordUseCase logSetRecordUseCase,
                                     FinishWorkoutSessionUseCase finishWorkoutSessionUseCase,
-                                    GetWorkoutSessionUseCase getWorkoutSessionUseCase) {
+                                    GetWorkoutSessionUseCase getWorkoutSessionUseCase,
+                                    GetUserSessionsUseCase getUserSessionsUseCase) {
         this.startWorkoutSessionUseCase = startWorkoutSessionUseCase;
         this.logSetRecordUseCase = logSetRecordUseCase;
         this.finishWorkoutSessionUseCase = finishWorkoutSessionUseCase;
         this.getWorkoutSessionUseCase = getWorkoutSessionUseCase;
+        this.getUserSessionsUseCase = getUserSessionsUseCase;
     }
 
     @Operation(summary = "Start a new workout session", description = "Initiates a session to execute a specific routine for the authenticated user")
@@ -65,6 +70,14 @@ public class WorkoutSessionController {
     public ResponseEntity<SessionSummaryResponseDto> finishSession(@PathVariable Long sessionId) {
         SessionSummaryResponseDto summary = finishWorkoutSessionUseCase.execute(sessionId);
         return ResponseEntity.ok(summary);
+    }
+
+    @Operation(summary = "Get my session history", description = "Retrieves all workout sessions for the authenticated user")
+    @ApiResponse(responseCode = "200", description = "Sessions retrieved successfully")
+    @GetMapping
+    public ResponseEntity<List<WorkoutSessionResponseDto>> getMySessions(@AuthenticationPrincipal User currentUser) {
+        List<WorkoutSessionResponseDto> sessions = getUserSessionsUseCase.execute(currentUser.getId());
+        return ResponseEntity.ok(sessions);
     }
 
     @Operation(summary = "Get session details", description = "Retrieves full details of a session, including all logged sets")

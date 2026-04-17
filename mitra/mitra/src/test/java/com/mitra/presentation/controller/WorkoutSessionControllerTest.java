@@ -4,8 +4,11 @@ import com.mitra.application.usecase.LogSetRecordUseCase;
 import com.mitra.application.usecase.StartWorkoutSessionUseCase;
 import com.mitra.application.usecase.FinishWorkoutSessionUseCase;
 import com.mitra.application.usecase.GetWorkoutSessionUseCase;
+import com.mitra.application.usecase.GetUserSessionsUseCase;
 import com.mitra.domain.model.User;
 import com.mitra.presentation.dto.response.SetRecordResponseDto;
+import com.mitra.presentation.dto.response.SessionSummaryResponseDto;
+import com.mitra.presentation.dto.response.WorkoutSessionResponseDto;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,7 +21,9 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.util.Collections;
+import java.util.List;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
@@ -50,6 +55,9 @@ class WorkoutSessionControllerTest {
 
     @MockitoBean
     private GetWorkoutSessionUseCase getWorkoutSessionUseCase;
+
+    @MockitoBean
+    private GetUserSessionsUseCase getUserSessionsUseCase;
 
     @MockitoBean
     private com.mitra.application.port.out.UserRepositoryPort userRepositoryPort;
@@ -105,9 +113,7 @@ class WorkoutSessionControllerTest {
 
     @Test
     void shouldFinishSessionAndReturn200() throws Exception {
-        com.mitra.presentation.dto.response.SessionSummaryResponseDto summary = 
-            new com.mitra.presentation.dto.response.SessionSummaryResponseDto(100L, 15, 60L);
-            
+        SessionSummaryResponseDto summary = new SessionSummaryResponseDto(100L, 15, 60L);
         when(finishWorkoutSessionUseCase.execute(100L)).thenReturn(summary);
 
         mockMvc.perform(post("/api/v1/sessions/100/finish"))
@@ -118,10 +124,9 @@ class WorkoutSessionControllerTest {
 
     @Test
     void shouldGetSessionDetailsAndReturn200() throws Exception {
-        com.mitra.presentation.dto.response.WorkoutSessionResponseDto sessionDto = 
-            new com.mitra.presentation.dto.response.WorkoutSessionResponseDto(
-                100L, 1L, 10L, java.time.LocalDateTime.now(), null, true, java.util.List.of()
-            );
+        WorkoutSessionResponseDto sessionDto = new WorkoutSessionResponseDto(
+                100L, 1L, 10L, LocalDateTime.now(), null, true, List.of()
+        );
 
         when(getWorkoutSessionUseCase.execute(100L)).thenReturn(sessionDto);
 
@@ -129,5 +134,22 @@ class WorkoutSessionControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").value(100))
                 .andExpect(jsonPath("$.active").value(true));
+    }
+
+    @Test
+    void shouldReturnSessionHistoryForAuthenticatedUser() throws Exception {
+        List<WorkoutSessionResponseDto> sessions = List.of(
+                new WorkoutSessionResponseDto(1L, 1L, 10L, LocalDateTime.now().minusDays(1),
+                        LocalDateTime.now().minusDays(1).plusHours(1), false, List.of()),
+                new WorkoutSessionResponseDto(2L, 1L, 10L, LocalDateTime.now(), null, true, List.of())
+        );
+
+        when(getUserSessionsUseCase.execute(1L)).thenReturn(sessions);
+
+        mockMvc.perform(get("/api/v1/sessions"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.length()").value(2))
+                .andExpect(jsonPath("$[0].active").value(false))
+                .andExpect(jsonPath("$[1].active").value(true));
     }
 }
