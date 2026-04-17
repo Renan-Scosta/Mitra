@@ -7,7 +7,9 @@ import com.mitra.infrastructure.persistence.repository.BodyMeasurementJpaReposit
 import com.mitra.infrastructure.persistence.repository.UserJpaRepository;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Repository
 public class BodyMeasurementRepositoryAdapter implements BodyMeasurementRepositoryPort {
@@ -26,6 +28,13 @@ public class BodyMeasurementRepositoryAdapter implements BodyMeasurementReposito
     public Optional<BodyMeasurement> findLatestByUserId(Long userId) {
         return jpaRepository.findFirstByUserIdOrderByRecordDateDesc(userId)
                 .map(BodyMeasurementMapper::toDomain);
+    }
+
+    @Override
+    public List<BodyMeasurement> findAllByUserId(Long userId) {
+        return jpaRepository.findByUserIdOrderByRecordDateDesc(userId).stream()
+                .map(BodyMeasurementMapper::toDomain)
+                .collect(Collectors.toList());
     }
 
     @Override
