@@ -6,8 +6,11 @@ import com.mitra.infrastructure.persistence.mapper.WorkoutSessionMapper;
 import com.mitra.infrastructure.persistence.repository.UserJpaRepository;
 import com.mitra.infrastructure.persistence.repository.WorkoutRoutineJpaRepository;
 import com.mitra.infrastructure.persistence.repository.WorkoutSessionJpaRepository;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Repository;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -39,6 +42,12 @@ public class WorkoutSessionRepositoryAdapter implements WorkoutSessionRepository
         return jpaRepository.findByUserId(userId).stream()
                 .map(WorkoutSessionMapper::toDomain)
                 .collect(Collectors.toList());
+    }
+
+    @Override
+    public Page<WorkoutSession> findByUserIdAndDateRange(Long userId, LocalDateTime start, LocalDateTime end, Pageable pageable) {
+        return jpaRepository.findByUserIdAndStartTimeBetween(userId, start, end, pageable)
+                .map(WorkoutSessionMapper::toDomain);
     }
 
     @Override

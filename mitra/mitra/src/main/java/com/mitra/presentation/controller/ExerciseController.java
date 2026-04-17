@@ -2,13 +2,19 @@ package com.mitra.presentation.controller;
 
 import com.mitra.application.usecase.CreateExerciseUseCase;
 import com.mitra.application.usecase.GetAllExercisesUseCase;
+import com.mitra.application.usecase.GetExerciseHistoryUseCase;
+import com.mitra.application.usecase.GetPersonalRecordsUseCase;
+import com.mitra.domain.model.User;
 import com.mitra.presentation.dto.request.CreateExerciseRequestDto;
+import com.mitra.presentation.dto.response.ExerciseHistoryResponseDto;
 import com.mitra.presentation.dto.response.ExerciseResponseDto;
+import com.mitra.presentation.dto.response.PersonalRecordResponseDto;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.net.URI;
@@ -21,10 +27,17 @@ public class ExerciseController {
 
     private final CreateExerciseUseCase createExerciseUseCase;
     private final GetAllExercisesUseCase getAllExercisesUseCase;
+    private final GetExerciseHistoryUseCase getExerciseHistoryUseCase;
+    private final GetPersonalRecordsUseCase getPersonalRecordsUseCase;
 
-    public ExerciseController(CreateExerciseUseCase createExerciseUseCase, GetAllExercisesUseCase getAllExercisesUseCase) {
+    public ExerciseController(CreateExerciseUseCase createExerciseUseCase, 
+                              GetAllExercisesUseCase getAllExercisesUseCase,
+                              GetExerciseHistoryUseCase getExerciseHistoryUseCase,
+                              GetPersonalRecordsUseCase getPersonalRecordsUseCase) {
         this.createExerciseUseCase = createExerciseUseCase;
         this.getAllExercisesUseCase = getAllExercisesUseCase;
+        this.getExerciseHistoryUseCase = getExerciseHistoryUseCase;
+        this.getPersonalRecordsUseCase = getPersonalRecordsUseCase;
     }
 
     @Operation(summary = "Register a new exercise", description = "Creates a new exercise in the catalog")
@@ -42,5 +55,26 @@ public class ExerciseController {
     public ResponseEntity<List<ExerciseResponseDto>> getAllExercises() {
         List<ExerciseResponseDto> exercises = getAllExercisesUseCase.execute();
         return ResponseEntity.ok(exercises);
+    }
+
+    @Operation(summary = "Get exercise history", description = "Retrieves the user's history for an exercise grouped by session")
+    @ApiResponse(responseCode = "200", description = "History retrieved successfully")
+    @GetMapping("/{exerciseId}/history")
+    public ResponseEntity<ExerciseHistoryResponseDto> getExerciseHistory(
+            @PathVariable Long exerciseId,
+            @AuthenticationPrincipal User currentUser) {
+        ExerciseHistoryResponseDto response = getExerciseHistoryUseCase.execute(currentUser.getId(), exerciseId);
+        return ResponseEntity.ok(response);
+    }
+
+    @Operation(summary = "Get personal records", description = "Calculates personal records for the user in the specified exercise")
+    @ApiResponse(responseCode = "200", description = "PRs retrieved successfully")
+    @ApiResponse(responseCode = "404", description = "No sets logged for this exercise")
+    @GetMapping("/{exerciseId}/records")
+    public ResponseEntity<PersonalRecordResponseDto> getPersonalRecords(
+            @PathVariable Long exerciseId,
+            @AuthenticationPrincipal User currentUser) {
+        PersonalRecordResponseDto response = getPersonalRecordsUseCase.execute(currentUser.getId(), exerciseId);
+        return ResponseEntity.ok(response);
     }
 }

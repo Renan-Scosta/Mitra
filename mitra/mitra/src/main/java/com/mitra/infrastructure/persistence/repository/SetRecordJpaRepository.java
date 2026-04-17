@@ -7,4 +7,5 @@ import java.util.List;
 
 public interface SetRecordJpaRepository extends JpaRepository<SetRecordEntity, Long> {
     List<SetRecordEntity> findByWorkoutSessionId(Long sessionId);
+    List<SetRecordEntity> findByWorkoutSession_UserIdAndExercise_Id(Long userId, Long exerciseId);
 }

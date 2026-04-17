@@ -35,6 +35,13 @@ public class SetRecordRepositoryAdapter implements SetRecordRepositoryPort {
     }
 
     @Override
+    public List<SetRecord> findByUserIdAndExerciseId(Long userId, Long exerciseId) {
+        return jpaRepository.findByWorkoutSession_UserIdAndExercise_Id(userId, exerciseId).stream()
+                .map(SetRecordMapper::toDomain)
+                .collect(Collectors.toList());
+    }
+
+    @Override
     public SetRecord save(SetRecord setRecord) {
         var sessionEntity = sessionJpaRepository.findById(setRecord.getSessionId())
                 .orElseThrow(() -> new IllegalArgumentException(

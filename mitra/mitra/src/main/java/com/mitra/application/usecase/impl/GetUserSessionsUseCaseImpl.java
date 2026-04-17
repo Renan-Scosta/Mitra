@@ -5,9 +5,13 @@ import com.mitra.application.usecase.GetUserSessionsUseCase;
 import com.mitra.domain.model.WorkoutSession;
 import com.mitra.presentation.dto.response.SetRecordResponseDto;
 import com.mitra.presentation.dto.response.WorkoutSessionResponseDto;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -23,10 +27,15 @@ public class GetUserSessionsUseCaseImpl implements GetUserSessionsUseCase {
 
     @Override
     @Transactional(readOnly = true)
-    public List<WorkoutSessionResponseDto> execute(Long userId) {
-        return workoutSessionRepositoryPort.findByUserId(userId).stream()
-                .map(this::toDto)
-                .collect(Collectors.toList());
+    public Page<WorkoutSessionResponseDto> execute(Long userId, LocalDate startDate, LocalDate endDate, Pageable pageable) {
+        LocalDate start = startDate != null ? startDate : LocalDate.of(2020, 1, 1);
+        LocalDate end = endDate != null ? endDate : LocalDate.now().plusDays(1);
+        
+        LocalDateTime startDateTime = start.atStartOfDay();
+        LocalDateTime endDateTime = end.atTime(23, 59, 59);
+
+        return workoutSessionRepositoryPort.findByUserIdAndDateRange(userId, startDateTime, endDateTime, pageable)
+                .map(this::toDto);
     }
 
     private WorkoutSessionResponseDto toDto(WorkoutSession session) {

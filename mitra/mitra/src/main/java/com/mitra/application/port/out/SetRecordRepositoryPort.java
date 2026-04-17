@@ -6,5 +6,6 @@ import java.util.List;
 
 public interface SetRecordRepositoryPort {
     List<SetRecord> findBySessionId(Long sessionId);
+    List<SetRecord> findByUserIdAndExerciseId(Long userId, Long exerciseId);
     SetRecord save(SetRecord setRecord);
 }

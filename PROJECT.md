@@ -266,6 +266,12 @@ Adapta-se ao `TrackingType`: `weightKg` (null para REPS_ONLY/TIME_ONLY), `reps` 
 | `CreateBodyMeasurementUseCase` | `Long userId, CreateBodyMeasurementRequestDto` | `BodyMeasurementResponseDto` | Calcula `leanMassKg` e `fatMassKg` derivados |
 | `GetBodyMeasurementsUseCase` | `Long userId` | `List<BodyMeasurementResponseDto>` | Histórico de medições do user autenticado |
 
+#### UseCases Puros: Modelos de Inteligência e Cálculos
+- `CalculateBmrUseCase`: Usa fórmula Mifflin-St Jeor no `CalorieCalculator`.
+- `CalculateSessionCaloriesUseCase`: Calcula gasto calórico de uma sessão inteira.
+- `GetExerciseHistoryUseCase` [FASE 7]: Busca histórico cronológico de séries do usuário.
+- `GetPersonalRecordsUseCase` [FASE 7]: Calcula PRs (maior peso, reps, volume, duração).
+
 ---
 
 ## 8. API Endpoints
@@ -281,11 +287,12 @@ Adapta-se ao `TrackingType`: `weightKg` (null para REPS_ONLY/TIME_ONLY), `reps` 
 | POST | `/` | ❌ público | Registra novo usuário (valida password == confirmPassword) |
 | GET | `/me/bmr` | ✅ Bearer | Calcula BMR do usuário logado |
 
-### Exercises — `/api/v1/exercises`
-| Método | Path | Auth | Descrição |
-|---|---|---|---|
-| POST | `/` | ✅ Bearer | Cria exercício |
-| GET | `/` | ✅ Bearer | Lista todos os exercícios |
+### Exercises (Catálogo, Histórico e PRs)
+*   **Controller**: `ExerciseController`
+*   `POST /api/v1/exercises` - Registra exercício (Global)
+*   `GET /api/v1/exercises` - Lista catálogo de exercícios
+*   `GET /api/v1/exercises/{exerciseId}/history` - Retorna histórico cronológico do exercício _[Tenant Protected]_
+*   `GET /api/v1/exercises/{exerciseId}/records` - Retorna PRs do exercício _[Tenant Protected]_
 
 ### Routines — `/api/v1/routines`
 | Método | Path | Auth | Descrição |
@@ -354,7 +361,7 @@ O `DatabaseSeeder` (ativo apenas fora do perfil `test`) cria automaticamente:
 | Integration (Persistence) | 16 | `@DataJpaTest` | H2 | Todos os 8 Repository Adapters |
 | WebMvc (Controller) | 40 | `@WebMvcTest` | Nenhum | Auth, User, Exercise, Routine, Session, BodyMeasurement controllers |
 | Context | 1 | `@SpringBootTest` | H2 | Verifica que o contexto Spring sobe |
-| **Total** | **110** | | | |
+| **Total** | **119** | | | |
 
 ### Configuração de teste
 - Perfil `test` ativo via `@ActiveProfiles("test")`

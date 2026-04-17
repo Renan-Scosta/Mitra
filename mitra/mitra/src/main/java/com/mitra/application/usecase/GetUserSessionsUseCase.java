@@ -1,9 +1,11 @@
 package com.mitra.application.usecase;
 
 import com.mitra.presentation.dto.response.WorkoutSessionResponseDto;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
-import java.util.List;
+import java.time.LocalDate;
 
 public interface GetUserSessionsUseCase {
-    List<WorkoutSessionResponseDto> execute(Long userId);
+    Page<WorkoutSessionResponseDto> execute(Long userId, LocalDate startDate, LocalDate endDate, Pageable pageable);
 }

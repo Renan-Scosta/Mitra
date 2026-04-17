@@ -15,6 +15,9 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.MediaType;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -150,13 +153,15 @@ class WorkoutSessionControllerTest {
                 new WorkoutSessionResponseDto(2L, 1L, 10L, LocalDateTime.now(), null, true, List.of())
         );
 
-        when(getUserSessionsUseCase.execute(1L)).thenReturn(sessions);
+        Page<WorkoutSessionResponseDto> page = new PageImpl<>(sessions);
 
-        mockMvc.perform(get("/api/v1/sessions"))
+        when(getUserSessionsUseCase.execute(eq(1L), any(), any(), any(Pageable.class))).thenReturn(page);
+
+        mockMvc.perform(get("/api/v1/sessions?page=0&size=10"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.length()").value(2))
-                .andExpect(jsonPath("$[0].active").value(false))
-                .andExpect(jsonPath("$[1].active").value(true));
+                .andExpect(jsonPath("$.content.length()").value(2))
+                .andExpect(jsonPath("$.content[0].active").value(false))
+                .andExpect(jsonPath("$.content[1].active").value(true));
     }
 
     @Test

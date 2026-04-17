@@ -17,11 +17,15 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.net.URI;
+import java.time.LocalDate;
 import java.util.List;
 
 @Tag(name = "Workout Sessions", description = "Endpoints for executing and tracking workout routines")
@@ -81,11 +85,15 @@ public class WorkoutSessionController {
         return ResponseEntity.ok(summary);
     }
 
-    @Operation(summary = "Get my session history", description = "Retrieves all workout sessions for the authenticated user")
+    @Operation(summary = "Get my session history", description = "Retrieves all workout sessions for the authenticated user with optional date filtering and pagination")
     @ApiResponse(responseCode = "200", description = "Sessions retrieved successfully")
     @GetMapping
-    public ResponseEntity<List<WorkoutSessionResponseDto>> getMySessions(@AuthenticationPrincipal User currentUser) {
-        List<WorkoutSessionResponseDto> sessions = getUserSessionsUseCase.execute(currentUser.getId());
+    public ResponseEntity<Page<WorkoutSessionResponseDto>> getMySessions(
+            @AuthenticationPrincipal User currentUser,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate,
+            Pageable pageable) {
+        Page<WorkoutSessionResponseDto> sessions = getUserSessionsUseCase.execute(currentUser.getId(), startDate, endDate, pageable);
         return ResponseEntity.ok(sessions);
     }
 
