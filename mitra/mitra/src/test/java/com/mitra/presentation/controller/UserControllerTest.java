@@ -44,6 +44,21 @@ class UserControllerTest {
     @MockitoBean
     private com.mitra.infrastructure.security.TokenService tokenService;
 
+    @MockitoBean
+    private com.mitra.application.usecase.UpdateUserProfileUseCase updateUserProfileUseCase;
+
+    @MockitoBean
+    private com.mitra.application.usecase.UpdateUserPasswordUseCase updateUserPasswordUseCase;
+
+    @MockitoBean
+    private com.mitra.application.usecase.DeleteUserAccountUseCase deleteUserAccountUseCase;
+
+    @MockitoBean
+    private com.mitra.application.usecase.GetUserDashboardUseCase getUserDashboardUseCase;
+
+    @MockitoBean
+    private com.mitra.application.usecase.GetUserVolumeSummaryUseCase getUserVolumeSummaryUseCase;
+
     @BeforeEach
     void setUp() {
         User testUser = User.builder().id(1L).email("test@mitra.com").name("Test").password("x").build();
@@ -92,5 +107,53 @@ class UserControllerTest {
                         .content(payload))
                 .andExpect(status().isCreated())
                 .andExpect(header().exists("Location"));
+    }
+
+    @Test
+    void shouldUpdateProfileAndReturn200() throws Exception {
+        String payload = """
+                {
+                    "name": "Updated Name",
+                    "birthDate": "2000-01-01",
+                    "gender": "MALE",
+                    "heightCm": 185
+                }
+                """;
+
+        when(updateUserProfileUseCase.execute(any(), any())).thenReturn(
+                new com.mitra.presentation.dto.response.UserProfileResponseDto(
+                        1L, "test@mitra.com", "Updated Name", java.time.LocalDate.of(2000, 1, 1),
+                        com.mitra.domain.model.enums.Gender.MALE, 185, 26
+                )
+        );
+
+        mockMvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put("/api/v1/users/me")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(payload))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.name").value("Updated Name"))
+                .andExpect(jsonPath("$.heightCm").value(185));
+    }
+
+    @Test
+    void shouldUpdatePasswordAndReturn204() throws Exception {
+        String payload = """
+                {
+                    "currentPassword": "old",
+                    "newPassword": "newPassword",
+                    "confirmNewPassword": "newPassword"
+                }
+                """;
+
+        mockMvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put("/api/v1/users/me/password")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(payload))
+                .andExpect(status().isNoContent());
+    }
+
+    @Test
+    void shouldDeleteAccountAndReturn204() throws Exception {
+        mockMvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete("/api/v1/users/me"))
+                .andExpect(status().isNoContent());
     }
 }
