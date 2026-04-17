@@ -93,7 +93,7 @@ class WorkoutSessionControllerTest {
     @Test
     void shouldLogSetAndReturn200() throws Exception {
         SetRecordResponseDto responseDto = new SetRecordResponseDto(30L, 5L, new BigDecimal("45.0"), 12, null);
-        when(logSetRecordUseCase.execute(eq(100L), any())).thenReturn(responseDto);
+        when(logSetRecordUseCase.execute(eq(1L), eq(100L), any())).thenReturn(responseDto);
 
         String payload = """
                 {
@@ -114,7 +114,7 @@ class WorkoutSessionControllerTest {
     @Test
     void shouldFinishSessionAndReturn200() throws Exception {
         SessionSummaryResponseDto summary = new SessionSummaryResponseDto(100L, 15, 60L);
-        when(finishWorkoutSessionUseCase.execute(100L)).thenReturn(summary);
+        when(finishWorkoutSessionUseCase.execute(1L, 100L)).thenReturn(summary);
 
         mockMvc.perform(post("/api/v1/sessions/100/finish"))
                 .andExpect(status().isOk())
@@ -128,7 +128,7 @@ class WorkoutSessionControllerTest {
                 100L, 1L, 10L, LocalDateTime.now(), null, true, List.of()
         );
 
-        when(getWorkoutSessionUseCase.execute(100L)).thenReturn(sessionDto);
+        when(getWorkoutSessionUseCase.execute(1L, 100L)).thenReturn(sessionDto);
 
         mockMvc.perform(get("/api/v1/sessions/100"))
                 .andExpect(status().isOk())

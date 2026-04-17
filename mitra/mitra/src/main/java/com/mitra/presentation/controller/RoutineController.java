@@ -57,12 +57,14 @@ public class RoutineController {
 
     @Operation(summary = "Add an exercise to a routine", description = "Maps an exercise to a given routine with target sets and reps")
     @ApiResponse(responseCode = "200", description = "Exercise added to routine successfully")
+    @ApiResponse(responseCode = "403", description = "Routine does not belong to the authenticated user")
     @ApiResponse(responseCode = "404", description = "Routine or Exercise not found")
     @PostMapping("/{routineId}/exercises")
     public ResponseEntity<RoutineExerciseResponseDto> addExerciseToRoutine(
             @PathVariable Long routineId,
-            @Valid @RequestBody AddRoutineExerciseRequestDto request) {
-        RoutineExerciseResponseDto response = addRoutineExerciseUseCase.execute(routineId, request);
+            @Valid @RequestBody AddRoutineExerciseRequestDto request,
+            @AuthenticationPrincipal User currentUser) {
+        RoutineExerciseResponseDto response = addRoutineExerciseUseCase.execute(currentUser.getId(), routineId, request);
         return ResponseEntity.ok(response);
     }
 }

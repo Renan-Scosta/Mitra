@@ -56,19 +56,23 @@ public class WorkoutSessionController {
 
     @Operation(summary = "Log an exercise set", description = "Logs a single set execution into the active session")
     @ApiResponse(responseCode = "200", description = "Set logged successfully")
+    @ApiResponse(responseCode = "403", description = "Session does not belong to the authenticated user")
     @PostMapping("/{sessionId}/sets")
     public ResponseEntity<SetRecordResponseDto> logSet(
             @PathVariable Long sessionId,
-            @Valid @RequestBody LogSetRequestDto request) {
-        SetRecordResponseDto response = logSetRecordUseCase.execute(sessionId, request);
+            @Valid @RequestBody LogSetRequestDto request,
+            @AuthenticationPrincipal User currentUser) {
+        SetRecordResponseDto response = logSetRecordUseCase.execute(currentUser.getId(), sessionId, request);
         return ResponseEntity.ok(response);
     }
 
     @Operation(summary = "Finish a workout session", description = "Marks the session as finished and calculates summary statistics")
     @ApiResponse(responseCode = "200", description = "Session finished successfully")
+    @ApiResponse(responseCode = "403", description = "Session does not belong to the authenticated user")
     @PostMapping("/{sessionId}/finish")
-    public ResponseEntity<SessionSummaryResponseDto> finishSession(@PathVariable Long sessionId) {
-        SessionSummaryResponseDto summary = finishWorkoutSessionUseCase.execute(sessionId);
+    public ResponseEntity<SessionSummaryResponseDto> finishSession(@PathVariable Long sessionId,
+                                                                   @AuthenticationPrincipal User currentUser) {
+        SessionSummaryResponseDto summary = finishWorkoutSessionUseCase.execute(currentUser.getId(), sessionId);
         return ResponseEntity.ok(summary);
     }
 
@@ -82,9 +86,11 @@ public class WorkoutSessionController {
 
     @Operation(summary = "Get session details", description = "Retrieves full details of a session, including all logged sets")
     @ApiResponse(responseCode = "200", description = "Session retrieved successfully")
+    @ApiResponse(responseCode = "403", description = "Session does not belong to the authenticated user")
     @GetMapping("/{sessionId}")
-    public ResponseEntity<WorkoutSessionResponseDto> getSession(@PathVariable Long sessionId) {
-        WorkoutSessionResponseDto sessionDto = getWorkoutSessionUseCase.execute(sessionId);
+    public ResponseEntity<WorkoutSessionResponseDto> getSession(@PathVariable Long sessionId,
+                                                                @AuthenticationPrincipal User currentUser) {
+        WorkoutSessionResponseDto sessionDto = getWorkoutSessionUseCase.execute(currentUser.getId(), sessionId);
         return ResponseEntity.ok(sessionDto);
     }
 }

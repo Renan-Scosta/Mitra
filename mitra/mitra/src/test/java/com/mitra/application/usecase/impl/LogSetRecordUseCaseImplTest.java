@@ -40,26 +40,24 @@ class LogSetRecordUseCaseImplTest {
 
     @Test
     void shouldLogSetSuccessfully() {
+        Long userId = 1L;
         Long sessionId = 100L;
         LogSetRequestDto request = new LogSetRequestDto(5L, new BigDecimal("40.0"), 10, null);
-        
-        WorkoutSession session = WorkoutSession.builder().id(sessionId).startTime(LocalDateTime.now()).build();
+
+        WorkoutSession session = WorkoutSession.builder()
+                .id(sessionId).userId(userId).startTime(LocalDateTime.now()).build();
         Exercise exercise = Exercise.builder().id(5L).trackingType(TrackingType.WEIGHT_REPS).build();
-        
+
         when(workoutSessionRepositoryPort.findById(sessionId)).thenReturn(Optional.of(session));
         when(exerciseRepositoryPort.findById(5L)).thenReturn(Optional.of(exercise));
         when(setRecordRepositoryPort.save(any(SetRecord.class))).thenAnswer(i -> {
             SetRecord s = i.getArgument(0);
             return SetRecord.builder()
-                    .id(30L)
-                    .sessionId(s.getSessionId())
-                    .exercise(s.getExercise())
-                    .weightKg(s.getWeightKg())
-                    .reps(s.getReps())
-                    .build();
+                    .id(30L).sessionId(s.getSessionId()).exercise(s.getExercise())
+                    .weightKg(s.getWeightKg()).reps(s.getReps()).build();
         });
 
-        SetRecordResponseDto response = logSetRecordUseCase.execute(sessionId, request);
+        SetRecordResponseDto response = logSetRecordUseCase.execute(userId, sessionId, request);
 
         assertNotNull(response);
         assertEquals(30L, response.id());
@@ -74,20 +72,39 @@ class LogSetRecordUseCaseImplTest {
         LogSetRequestDto request = new LogSetRequestDto(5L, new BigDecimal("40.0"), 10, null);
         when(workoutSessionRepositoryPort.findById(99L)).thenReturn(Optional.empty());
 
-        assertThrows(IllegalArgumentException.class, () -> logSetRecordUseCase.execute(99L, request));
+        assertThrows(IllegalArgumentException.class,
+                () -> logSetRecordUseCase.execute(1L, 99L, request));
     }
 
     @Test
     void shouldThrowExceptionWhenSessionIsNotActive() {
         LogSetRequestDto request = new LogSetRequestDto(5L, new BigDecimal("40.0"), 10, null);
         WorkoutSession session = WorkoutSession.builder()
-                .id(100L)
+                .id(100L).userId(1L)
                 .startTime(LocalDateTime.now().minusHours(1))
-                .endTime(LocalDateTime.now()) // session is finished
+                .endTime(LocalDateTime.now())
                 .build();
-                
+
         when(workoutSessionRepositoryPort.findById(100L)).thenReturn(Optional.of(session));
 
-        assertThrows(IllegalStateException.class, () -> logSetRecordUseCase.execute(100L, request));
+        assertThrows(IllegalStateException.class,
+                () -> logSetRecordUseCase.execute(1L, 100L, request));
+    }
+
+    @Test
+    void shouldThrowSecurityExceptionWhenUserDoesNotOwnSession() {
+        Long ownerId = 1L;
+        Long attackerId = 999L;
+        Long sessionId = 100L;
+        LogSetRequestDto request = new LogSetRequestDto(5L, new BigDecimal("40.0"), 10, null);
+
+        WorkoutSession session = WorkoutSession.builder()
+                .id(sessionId).userId(ownerId).startTime(LocalDateTime.now()).build();
+
+        when(workoutSessionRepositoryPort.findById(sessionId)).thenReturn(Optional.of(session));
+
+        assertThrows(SecurityException.class,
+                () -> logSetRecordUseCase.execute(attackerId, sessionId, request));
+        verify(setRecordRepositoryPort, never()).save(any());
     }
 }

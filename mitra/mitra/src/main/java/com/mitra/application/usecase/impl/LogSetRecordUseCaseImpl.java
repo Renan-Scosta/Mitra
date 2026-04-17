@@ -1,16 +1,15 @@
 package com.mitra.application.usecase.impl;
 
-import com.mitra.application.usecase.LogSetRecordUseCase;
-import com.mitra.presentation.dto.request.LogSetRequestDto;
-import com.mitra.presentation.dto.response.SetRecordResponseDto;
-import org.springframework.stereotype.Service;
-
 import com.mitra.application.port.out.ExerciseRepositoryPort;
 import com.mitra.application.port.out.SetRecordRepositoryPort;
 import com.mitra.application.port.out.WorkoutSessionRepositoryPort;
+import com.mitra.application.usecase.LogSetRecordUseCase;
 import com.mitra.domain.model.Exercise;
 import com.mitra.domain.model.SetRecord;
 import com.mitra.domain.model.WorkoutSession;
+import com.mitra.presentation.dto.request.LogSetRequestDto;
+import com.mitra.presentation.dto.response.SetRecordResponseDto;
+import org.springframework.stereotype.Service;
 
 @Service
 public class LogSetRecordUseCaseImpl implements LogSetRecordUseCase {
@@ -28,17 +27,21 @@ public class LogSetRecordUseCaseImpl implements LogSetRecordUseCase {
     }
 
     @Override
-    public SetRecordResponseDto execute(Long sessionId, LogSetRequestDto request) {
+    public SetRecordResponseDto execute(Long userId, Long sessionId, LogSetRequestDto request) {
         WorkoutSession session = workoutSessionRepositoryPort.findById(sessionId)
                 .orElseThrow(() -> new IllegalArgumentException("Session not found"));
-                
+
+        if (!session.getUserId().equals(userId)) {
+            throw new SecurityException("You do not own this session");
+        }
+
         if (!session.isActive()) {
             throw new IllegalStateException("Session is no longer active");
         }
-        
+
         Exercise exercise = exerciseRepositoryPort.findById(request.exerciseId())
                 .orElseThrow(() -> new IllegalArgumentException("Exercise not found"));
-                
+
         SetRecord record = SetRecord.builder()
                 .sessionId(sessionId)
                 .exercise(exercise)
@@ -46,9 +49,9 @@ public class LogSetRecordUseCaseImpl implements LogSetRecordUseCase {
                 .reps(request.reps())
                 .durationSeconds(request.durationSeconds())
                 .build();
-                
+
         SetRecord saved = setRecordRepositoryPort.save(record);
-        
+
         return new SetRecordResponseDto(
                 saved.getId(),
                 saved.getExercise().getId(),

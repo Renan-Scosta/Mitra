@@ -1,12 +1,11 @@
 package com.mitra.application.usecase.impl;
 
-import com.mitra.application.usecase.GetWorkoutSessionUseCase;
-import com.mitra.presentation.dto.response.WorkoutSessionResponseDto;
-import org.springframework.stereotype.Service;
-
 import com.mitra.application.port.out.WorkoutSessionRepositoryPort;
+import com.mitra.application.usecase.GetWorkoutSessionUseCase;
 import com.mitra.domain.model.WorkoutSession;
 import com.mitra.presentation.dto.response.SetRecordResponseDto;
+import com.mitra.presentation.dto.response.WorkoutSessionResponseDto;
+import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
@@ -24,10 +23,14 @@ public class GetWorkoutSessionUseCaseImpl implements GetWorkoutSessionUseCase {
 
     @Override
     @Transactional(readOnly = true)
-    public WorkoutSessionResponseDto execute(Long sessionId) {
+    public WorkoutSessionResponseDto execute(Long userId, Long sessionId) {
         WorkoutSession session = workoutSessionRepositoryPort.findById(sessionId)
                 .orElseThrow(() -> new IllegalArgumentException("Session not found"));
-                
+
+        if (!session.getUserId().equals(userId)) {
+            throw new SecurityException("You do not own this session");
+        }
+
         List<SetRecordResponseDto> setDtos = new ArrayList<>();
         if (session.getSetRecords() != null) {
             setDtos = session.getSetRecords().stream()
@@ -40,7 +43,7 @@ public class GetWorkoutSessionUseCaseImpl implements GetWorkoutSessionUseCase {
                     ))
                     .collect(Collectors.toList());
         }
-        
+
         return new WorkoutSessionResponseDto(
                 session.getId(),
                 session.getUserId(),

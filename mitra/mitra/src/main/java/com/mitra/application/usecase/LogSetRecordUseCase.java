@@ -4,5 +4,5 @@ import com.mitra.presentation.dto.request.LogSetRequestDto;
 import com.mitra.presentation.dto.response.SetRecordResponseDto;
 
 public interface LogSetRecordUseCase {
-    SetRecordResponseDto execute(Long sessionId, LogSetRequestDto request);
+    SetRecordResponseDto execute(Long userId, Long sessionId, LogSetRequestDto request);
 }

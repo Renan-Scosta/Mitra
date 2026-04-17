@@ -101,7 +101,7 @@ class RoutineControllerTest {
         ExerciseResponseDto exDto = new ExerciseResponseDto(5L, "Squat", "Legs", new BigDecimal("7.0"), TrackingType.WEIGHT_REPS);
         RoutineExerciseResponseDto responseDto = new RoutineExerciseResponseDto(25L, exDto, 4, 10);
 
-        when(addRoutineExerciseUseCase.execute(eq(10L), any())).thenReturn(responseDto);
+        when(addRoutineExerciseUseCase.execute(eq(1L), eq(10L), any())).thenReturn(responseDto);
 
         String payload = """
                 {

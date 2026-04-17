@@ -29,16 +29,17 @@ class FinishWorkoutSessionUseCaseImplTest {
 
     @Test
     void shouldFinishSessionSuccessfully() {
+        Long userId = 1L;
         WorkoutSession session = WorkoutSession.builder()
-                .id(100L)
+                .id(100L).userId(userId)
                 .startTime(LocalDateTime.now().minusMinutes(45))
                 .setRecords(List.of(new SetRecord(), new SetRecord(), new SetRecord()))
                 .build();
-                
+
         when(workoutSessionRepositoryPort.findById(100L)).thenReturn(Optional.of(session));
         when(workoutSessionRepositoryPort.save(any(WorkoutSession.class))).thenReturn(session);
 
-        SessionSummaryResponseDto summary = finishWorkoutSessionUseCase.execute(100L);
+        SessionSummaryResponseDto summary = finishWorkoutSessionUseCase.execute(userId, 100L);
 
         assertNotNull(summary);
         assertEquals(100L, summary.sessionId());
@@ -51,6 +52,23 @@ class FinishWorkoutSessionUseCaseImplTest {
     @Test
     void shouldThrowExceptionWhenSessionNotFound() {
         when(workoutSessionRepositoryPort.findById(99L)).thenReturn(Optional.empty());
-        assertThrows(IllegalArgumentException.class, () -> finishWorkoutSessionUseCase.execute(99L));
+        assertThrows(IllegalArgumentException.class,
+                () -> finishWorkoutSessionUseCase.execute(1L, 99L));
+    }
+
+    @Test
+    void shouldThrowSecurityExceptionWhenUserDoesNotOwnSession() {
+        Long ownerId = 1L;
+        Long attackerId = 999L;
+        WorkoutSession session = WorkoutSession.builder()
+                .id(100L).userId(ownerId)
+                .startTime(LocalDateTime.now().minusMinutes(30))
+                .build();
+
+        when(workoutSessionRepositoryPort.findById(100L)).thenReturn(Optional.of(session));
+
+        assertThrows(SecurityException.class,
+                () -> finishWorkoutSessionUseCase.execute(attackerId, 100L));
+        verify(workoutSessionRepositoryPort, never()).save(any());
     }
 }
