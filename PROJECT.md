@@ -253,11 +253,14 @@ Adapta-se ao `TrackingType`: `weightKg` (null para REPS_ONLY/TIME_ONLY), `reps` 
 | `GetAllExercisesUseCase` | — | `List<ExerciseResponseDto>` | — |
 | `CreateWorkoutRoutineUseCase` | `Long userId, CreateRoutineRequestDto` | `Long` | userId vem do `@AuthenticationPrincipal` |
 | `GetWorkoutRoutinesUseCase` | `Long userId` | `List<RoutineResponseDto>` | Inclui exercícios aninhados, `@Transactional(readOnly=true)` |
-| `AddRoutineExerciseUseCase` | `Long routineId, AddRoutineExerciseRequestDto` | `RoutineExerciseResponseDto` | — |
+| `AddRoutineExerciseUseCase` | `Long userId, Long routineId, AddRoutineExerciseRequestDto` | `RoutineExerciseResponseDto` | 🔒 **Ownership**: valida `routine.userId == userId`, throws `SecurityException` |
 | `StartWorkoutSessionUseCase` | `Long userId, StartSessionRequestDto` | `Long` | userId vem do `@AuthenticationPrincipal` |
-| `LogSetRecordUseCase` | `Long sessionId, LogSetRequestDto` | `SetRecordResponseDto` | Valida que exercício e sessão existem |
-| `FinishWorkoutSessionUseCase` | `Long sessionId` | `SessionSummaryResponseDto` | totalSets + effectiveDurationMinutes |
-| `GetWorkoutSessionUseCase` | `Long sessionId` | `WorkoutSessionResponseDto` | Inclui todos os SetRecords |
+| `LogSetRecordUseCase` | `Long userId, Long sessionId, LogSetRequestDto` | `SetRecordResponseDto` | 🔒 **Ownership**: valida `session.userId == userId`, throws `SecurityException` |
+| `FinishWorkoutSessionUseCase` | `Long userId, Long sessionId` | `SessionSummaryResponseDto` | 🔒 **Ownership**: valida `session.userId == userId`, throws `SecurityException` |
+| `GetWorkoutSessionUseCase` | `Long userId, Long sessionId` | `WorkoutSessionResponseDto` | 🔒 **Ownership**: valida `session.userId == userId`, throws `SecurityException` |
+| `GetUserSessionsUseCase` | `Long userId` | `List<WorkoutSessionResponseDto>` | Histórico de sessões do user autenticado |
+| `CreateBodyMeasurementUseCase` | `Long userId, CreateBodyMeasurementRequestDto` | `BodyMeasurementResponseDto` | Calcula `leanMassKg` e `fatMassKg` derivados |
+| `GetBodyMeasurementsUseCase` | `Long userId` | `List<BodyMeasurementResponseDto>` | Histórico de medições do user autenticado |
 
 ---
 
@@ -285,15 +288,22 @@ Adapta-se ao `TrackingType`: `weightKg` (null para REPS_ONLY/TIME_ONLY), `reps` 
 |---|---|---|---|
 | POST | `/` | ✅ Bearer | Cria rotina para o user autenticado |
 | GET | `/` | ✅ Bearer | Lista rotinas do user autenticado |
-| POST | `/{routineId}/exercises` | ✅ Bearer | Adiciona exercício à rotina |
+| POST | `/{routineId}/exercises` | ✅ Bearer 🔒 | Adiciona exercício à rotina (ownership enforced) |
 
 ### Sessions — `/api/v1/sessions`
 | Método | Path | Auth | Descrição |
 |---|---|---|---|
 | POST | `/` | ✅ Bearer | Inicia sessão de treino |
-| POST | `/{sessionId}/sets` | ✅ Bearer | Registra uma série |
-| POST | `/{sessionId}/finish` | ✅ Bearer | Finaliza sessão |
-| GET | `/{sessionId}` | ✅ Bearer | Detalhes da sessão |
+| GET | `/` | ✅ Bearer | Lista histórico de sessões do user autenticado |
+| POST | `/{sessionId}/sets` | ✅ Bearer 🔒 | Registra uma série (ownership enforced) |
+| POST | `/{sessionId}/finish` | ✅ Bearer 🔒 | Finaliza sessão (ownership enforced) |
+| GET | `/{sessionId}` | ✅ Bearer 🔒 | Detalhes da sessão (ownership enforced) |
+
+### Body Measurements — `/api/v1/measurements`
+| Método | Path | Auth | Descrição |
+|---|---|---|---|
+| POST | `/` | ✅ Bearer | Registra nova medição corporal |
+| GET | `/` | ✅ Bearer | Lista histórico de medições do user autenticado |
 
 ---
 
@@ -312,6 +322,12 @@ Adapta-se ao `TrackingType`: `weightKg` (null para REPS_ONLY/TIME_ONLY), `reps` 
 - O userId é **sempre** derivado do token JWT
 - Cada rotina/sessão é criada com o userId do token — um usuário nunca vê dados de outro
 
+### Ownership Enforcement
+- Endpoints que operam sobre recursos existentes (sessão, rotina) validam ownership **na camada de Use Case**
+- Se `resource.userId != currentUser.id` → `SecurityException` → **403 Forbidden**
+- Endpoints protegidos: `GET/POST /{sessionId}/*`, `POST /{routineId}/exercises`
+- O `GlobalExceptionHandler` mapeia `SecurityException` → 403
+
 ### Credenciais de Dev
 O `DatabaseSeeder` (ativo apenas fora do perfil `test`) cria automaticamente:
 - **Email**: `dev@mitra.com`
@@ -328,12 +344,12 @@ O `DatabaseSeeder` (ativo apenas fora do perfil `test`) cria automaticamente:
 
 | Tipo | Quant | Anotação | Banco | O que testa |
 |---|---|---|---|---|
-| Unit (Domain) | 1 | Nenhuma | Nenhum | `BmrCalculator` puro |
-| Unit (UseCase) | 5 | `@MockitoBean` | Nenhum | `CalculateBmrUseCase`, workout session use cases |
-| Integration (Persistence) | 2 | `@DataJpaTest` | H2 | `UserRepositoryAdapter`, `BodyMeasurementRepositoryAdapter` |
-| WebMvc (Controller) | 5 | `@WebMvcTest` | Nenhum | Auth, User, Exercise, Routine, Session controllers |
+| Unit (Domain) | 16 | Nenhuma | Nenhum | `BmrCalculator`, `User`, `WorkoutSession`, `BodyMeasurement` |
+| Unit (UseCase) | 28 | `@ExtendWith(MockitoExtension)` | Nenhum | Todos os 14 use cases + ownership violations |
+| Integration (Persistence) | 16 | `@DataJpaTest` | H2 | Todos os 8 Repository Adapters |
+| WebMvc (Controller) | 38 | `@WebMvcTest` | Nenhum | Auth, User, Exercise, Routine, Session, BodyMeasurement controllers |
 | Context | 1 | `@SpringBootTest` | H2 | Verifica que o contexto Spring sobe |
-| **Total** | **37** | | | |
+| **Total** | **99** | | | |
 
 ### Configuração de teste
 - Perfil `test` ativo via `@ActiveProfiles("test")`
@@ -413,7 +429,7 @@ SecurityContextHolder.getContext().setAuthentication(auth);
 ## 14. Checklist Pós-Implementação
 
 ```
-[ ] 1. Todos os 37+ testes passando
+[ ] 1. Todos os 99+ testes passando
 [ ] 2. Swagger UI acessível em http://localhost:8080/swagger-ui/index.html
 [ ] 3. Login funciona com dev@mitra.com / 123456
 [ ] 4. Bearer Token funciona no Swagger (botão Authorize)
