@@ -16,6 +16,7 @@ public final class UserMapper {
                 .birthDate(entity.getBirthDate())
                 .gender(entity.getGender())
                 .heightCm(entity.getHeightCm())
+                .role(entity.getRole())
                 .build();
     }
 
@@ -28,6 +29,7 @@ public final class UserMapper {
                 .birthDate(domain.getBirthDate())
                 .gender(domain.getGender())
                 .heightCm(domain.getHeightCm())
+                .role(domain.getRole())
                 .build();
     }
 }

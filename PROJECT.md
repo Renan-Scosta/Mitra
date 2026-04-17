@@ -35,9 +35,10 @@ O sistema permite registrar usuários, montar rotinas de treino, executar sessõ
 | **Banco Produção** | PostgreSQL | 16+ |
 | **Banco Testes** | H2 (in-memory) | via Spring Boot BOM |
 | **Segurança** | Spring Security + JWT (auth0/java-jwt 4.4.0) | — |
-| **OAuth2** | Google OAuth2 Client (configurado, não ativo ainda) | — |
+| **OAuth2** | Google API Client (API-first Stateless OAuth2) | 2.4.0 |
 | **Criptografia** | BCryptPasswordEncoder | — |
 | **Documentação API** | Springdoc OpenAPI (Swagger UI) | 3.0.2 |
+| **Observabilidade** | Spring Boot Actuator | via Spring Boot BOM |
 | **Boilerplate** | Lombok | via Spring Boot BOM |
 | **Testes** | JUnit 5 + Mockito + MockMvc | via Spring Boot BOM |
 
@@ -54,7 +55,7 @@ O sistema permite registrar usuários, montar rotinas de treino, executar sessõ
 | `GOOGLE_CLIENT_SECRET` | Sim* | — | Client Secret do Google OAuth2 |
 | `api.security.token.secret` | Não | `my-super-secret-mitra-key` | Secret do HMAC256 para JWT |
 
-> \* OAuth2 está configurado mas não integrado ao fluxo de autenticação real. Só é necessário se rodando sem `@Profile("!test")`.
+> \* OAuth2 funciona num modelo stateless: o cliente (mobile) obtém o idToken do Google e repassa ao Mitra na rota POST `/api/v1/auth/google`.
 
 ---
 
@@ -82,6 +83,7 @@ Mitra-App/
         │   │   │   │   ├── BodyMeasurement.java
         │   │   │   │   └── enums/
         │   │   │   │       ├── Gender.java          (MALE, FEMALE)
+        │   │   │   │       ├── Role.java            (ADMIN, USER)
         │   │   │   │       └── TrackingType.java     (WEIGHT_REPS, REPS_ONLY, TIME_ONLY)
         │   │   │   └── service/
         │   │   │       ├── BmrCalculator.java        ← Mifflin-St Jeor (puro, sem Spring)
@@ -97,9 +99,11 @@ Mitra-App/
         │   │   │   │   ├── RoutineExerciseRepositoryPort.java
         │   │   │   │   ├── SetRecordRepositoryPort.java
         │   │   │   │   ├── BodyMeasurementRepositoryPort.java
+        │   │   │   │   ├── GoogleTokenVerifierPort.java
         │   │   │   │   └── PasswordEncoderPort.java
         │   │   │   └── usecase/               ← Interfaces + implementations
         │   │   │       ├── RegisterUserUseCase.java
+        │   │   │       ├── GoogleLoginUseCase.java
         │   │   │       ├── CalculateBmrUseCase.java
         │   │   │       ├── CreateExerciseUseCase.java
         │   │   │       ├── GetAllExercisesUseCase.java
@@ -134,9 +138,9 @@ Mitra-App/
         │   │   │
         │   │   └── presentation/              ← CAMADA PRESENTATION (HTTP)
         │   │       ├── controller/
-        │   │       │   ├── AuthController.java                POST /api/v1/auth/login
+        │   │       │   ├── AuthController.java                POST /login, POST /google
         │   │       │   ├── UserController.java                POST /api/v1/users, GET /me/bmr
-        │   │       │   ├── ExerciseController.java            CRUD exercises
+        │   │       │   ├── ExerciseController.java            CRUD exercises (@PreAuthorize ADMIN)
         │   │       │   ├── RoutineController.java             CRUD routines (tenant-isolated)
         │   │       │   ├── WorkoutSessionController.java      sessions lifecycle + history
         │   │       │   └── BodyMeasurementController.java     POST+GET /api/v1/measurements
@@ -217,6 +221,7 @@ Mitra-App/
 | birthDate | LocalDate | not null |
 | gender | Gender | MALE / FEMALE |
 | heightCm | int | not null |
+| role | Role | ADMIN / USER (default). Controla permissões. |
 | `getAge()` | *derived* | `Period.between(birthDate, now)` |
 
 ### Exercise
@@ -252,8 +257,8 @@ Adapta-se ao `TrackingType`: `weightKg` (null para REPS_ONLY/TIME_ONLY), `reps` 
 |---|---|---|---|
 | `RegisterUserUseCase` | `CreateUserRequestDto` | `Long` (userId) | Encoda senha via `PasswordEncoderPort`, salva `BodyMeasurement` inicial |
 | `CalculateBmrUseCase` | `Long` (userId) | `double` (kcal/day) | Busca user + último peso, delega para `BmrCalculator` |
-| `CreateExerciseUseCase` | `CreateExerciseRequestDto` | `Long` | — |
-| `GetAllExercisesUseCase` | — | `List<ExerciseResponseDto>` | — |
+| `CreateExerciseUseCase` | `CreateExerciseRequestDto` | `Long` | Exige `ROLE_ADMIN` |
+| `GetAllExercisesUseCase` | `Pageable` | `Page<ExerciseResponseDto>` | Paginado |
 | `CreateWorkoutRoutineUseCase` | `Long userId, CreateRoutineRequestDto` | `Long` | userId vem do `@AuthenticationPrincipal` |
 | `GetWorkoutRoutinesUseCase` | `Long userId` | `List<RoutineResponseDto>` | Inclui exercícios aninhados, `@Transactional(readOnly=true)` |
 | `AddRoutineExerciseUseCase` | `Long userId, Long routineId, AddRoutineExerciseRequestDto` | `RoutineExerciseResponseDto` | 🔒 **Ownership**: valida `routine.userId == userId`, throws `SecurityException` |
@@ -267,6 +272,7 @@ Adapta-se ao `TrackingType`: `weightKg` (null para REPS_ONLY/TIME_ONLY), `reps` 
 | `GetBodyMeasurementsUseCase` | `Long userId` | `List<BodyMeasurementResponseDto>` | Histórico de medições do user autenticado |
 
 #### UseCases Puros: Modelos de Inteligência e Cálculos
+- `GoogleLoginUseCase`: Valida idToken (via Port), registra/encontra usuário e emite JWT.
 - `CalculateBmrUseCase`: Usa fórmula Mifflin-St Jeor no `CalorieCalculator`.
 - `CalculateSessionCaloriesUseCase`: Calcula gasto calórico de uma sessão inteira.
 - `GetExerciseHistoryUseCase` [FASE 7]: Busca histórico cronológico de séries do usuário.
@@ -280,6 +286,7 @@ Adapta-se ao `TrackingType`: `weightKg` (null para REPS_ONLY/TIME_ONLY), `reps` 
 | Método | Path | Auth | Descrição |
 |---|---|---|---|
 | POST | `/login` | ❌ público | Retorna JWT (`TokenResponseDto`) |
+| POST | `/google` | ❌ público | Valida `idToken` Google e retorna JWT |
 
 ### Users — `/api/v1/users`
 | Método | Path | Auth | Descrição |
@@ -289,8 +296,8 @@ Adapta-se ao `TrackingType`: `weightKg` (null para REPS_ONLY/TIME_ONLY), `reps` 
 
 ### Exercises (Catálogo, Histórico e PRs)
 *   **Controller**: `ExerciseController`
-*   `POST /api/v1/exercises` - Registra exercício (Global)
-*   `GET /api/v1/exercises` - Lista catálogo de exercícios
+*   `POST /api/v1/exercises` - Registra exercício (Global, requer `ADMIN`)
+*   `GET /api/v1/exercises` - Lista catálogo (suporta `Pageable`, default size 20)
 *   `GET /api/v1/exercises/{exerciseId}/history` - Retorna histórico cronológico do exercício _[Tenant Protected]_
 *   `GET /api/v1/exercises/{exerciseId}/records` - Retorna PRs do exercício _[Tenant Protected]_
 
@@ -357,11 +364,12 @@ O `DatabaseSeeder` (ativo apenas fora do perfil `test`) cria automaticamente:
 | Tipo | Quant | Anotação | Banco | O que testa |
 |---|---|---|---|---|
 | Unit (Domain) | 21 | Nenhuma | Nenhum | `BmrCalculator`, `CalorieCalculator`, `User`, `WorkoutSession`, `BodyMeasurement` |
-| Unit (UseCase) | 32 | `@ExtendWith(MockitoExtension)` | Nenhum | Todos os 15 use cases + ownership violations |
+| Unit (UseCase) | 35 | `@ExtendWith(MockitoExtension)` | Nenhum | Todos os 16 use cases + ownership violations |
+| Unit (Security) | 2 | Nenhuma | Nenhum | `GoogleTokenVerifierAdapter` |
 | Integration (Persistence) | 16 | `@DataJpaTest` | H2 | Todos os 8 Repository Adapters |
-| WebMvc (Controller) | 40 | `@WebMvcTest` | Nenhum | Auth, User, Exercise, Routine, Session, BodyMeasurement controllers |
+| WebMvc (Controller) | 49 | `@WebMvcTest` | Nenhum | Auth, User, Exercise, Routine, Session, BodyMeasurement controllers |
 | Context | 1 | `@SpringBootTest` | H2 | Verifica que o contexto Spring sobe |
-| **Total** | **119** | | | |
+| **Total** | **124** | | | |
 
 ### Configuração de teste
 - Perfil `test` ativo via `@ActiveProfiles("test")`

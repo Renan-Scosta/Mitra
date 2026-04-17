@@ -7,12 +7,13 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
-import java.util.Collections;
+import java.util.List;
 import java.util.Optional;
 
 @Component
@@ -39,8 +40,8 @@ public class SecurityFilter extends OncePerRequestFilter {
                 
                 if (userOpt.isPresent()) {
                     User user = userOpt.get();
-                    // We don't have roles implemented yet, passing an empty list
-                    var authentication = new UsernamePasswordAuthenticationToken(user, null, Collections.emptyList());
+                    var authority = new SimpleGrantedAuthority("ROLE_" + user.getRole().name());
+                    var authentication = new UsernamePasswordAuthenticationToken(user, null, List.of(authority));
                     SecurityContextHolder.getContext().setAuthentication(authentication);
                 }
             }

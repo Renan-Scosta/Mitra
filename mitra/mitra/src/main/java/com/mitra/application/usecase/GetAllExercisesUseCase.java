@@ -1,8 +1,9 @@
 package com.mitra.application.usecase;
 
 import com.mitra.presentation.dto.response.ExerciseResponseDto;
-import java.util.List;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 public interface GetAllExercisesUseCase {
-    List<ExerciseResponseDto> execute();
+    Page<ExerciseResponseDto> execute(Pageable pageable);
 }

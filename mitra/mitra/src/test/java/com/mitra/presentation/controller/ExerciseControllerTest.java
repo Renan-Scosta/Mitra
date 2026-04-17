@@ -20,6 +20,9 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.context.SecurityContextHolder;
 import com.mitra.domain.model.User;
 
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+
 import java.math.BigDecimal;
 import java.util.Collections;
 import java.util.List;
@@ -89,13 +92,13 @@ class ExerciseControllerTest {
 
     @Test
     void shouldReturnAllExercises() throws Exception {
-        when(getAllExercisesUseCase.execute()).thenReturn(List.of(
+        when(getAllExercisesUseCase.execute(any())).thenReturn(new PageImpl<>(List.of(
                 new ExerciseResponseDto(1L, "Bench", "Chest", new BigDecimal("6.0"), TrackingType.WEIGHT_REPS)
-        ));
+        )));
 
         mockMvc.perform(get("/api/v1/exercises"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$[0].name").value("Bench"));
+                .andExpect(jsonPath("$.content[0].name").value("Bench"));
     }
 
     @Test

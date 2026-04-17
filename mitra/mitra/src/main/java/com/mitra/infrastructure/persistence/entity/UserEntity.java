@@ -1,6 +1,7 @@
 package com.mitra.infrastructure.persistence.entity;
 
 import com.mitra.domain.model.enums.Gender;
+import com.mitra.domain.model.enums.Role;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -39,6 +40,11 @@ public class UserEntity {
 
     @Column(name = "height_cm", nullable = false)
     private Integer heightCm;
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false, length = 20)
+    @Builder.Default
+    private Role role = Role.USER;
 
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
     @Builder.Default

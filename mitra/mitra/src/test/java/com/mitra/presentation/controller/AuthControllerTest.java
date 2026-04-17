@@ -1,6 +1,7 @@
 package com.mitra.presentation.controller;
 
 import com.mitra.application.port.out.UserRepositoryPort;
+import com.mitra.application.usecase.GoogleLoginUseCase;
 import com.mitra.domain.model.User;
 import com.mitra.infrastructure.security.TokenService;
 import org.junit.jupiter.api.Test;
@@ -37,6 +38,9 @@ class AuthControllerTest {
 
     @MockitoBean
     private PasswordEncoder passwordEncoder;
+
+    @MockitoBean
+    private GoogleLoginUseCase googleLoginUseCase;
 
     @Test
     void shouldReturnTokenForValidCredentials() throws Exception {

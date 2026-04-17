@@ -13,12 +13,15 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.net.URI;
-import java.util.List;
 
 @Tag(name = "Exercises", description = "Endpoints for managing the exercise catalog")
 @RestController
@@ -43,6 +46,7 @@ public class ExerciseController {
     @Operation(summary = "Register a new exercise", description = "Creates a new exercise in the catalog")
     @ApiResponse(responseCode = "201", description = "Exercise successfully created")
     @ApiResponse(responseCode = "400", description = "Invalid request data")
+    @PreAuthorize("hasRole('ADMIN')")
     @PostMapping
     public ResponseEntity<Void> createExercise(@Valid @RequestBody CreateExerciseRequestDto request) {
         Long exerciseId = createExerciseUseCase.execute(request);
@@ -52,8 +56,9 @@ public class ExerciseController {
     @Operation(summary = "Get all exercises", description = "Retrieves the full catalog of available exercises")
     @ApiResponse(responseCode = "200", description = "Catalog retrieved successfully")
     @GetMapping
-    public ResponseEntity<List<ExerciseResponseDto>> getAllExercises() {
-        List<ExerciseResponseDto> exercises = getAllExercisesUseCase.execute();
+    public ResponseEntity<Page<ExerciseResponseDto>> getAllExercises(
+            @PageableDefault(size = 20) Pageable pageable) {
+        Page<ExerciseResponseDto> exercises = getAllExercisesUseCase.execute(pageable);
         return ResponseEntity.ok(exercises);
     }
 

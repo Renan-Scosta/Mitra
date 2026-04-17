@@ -10,6 +10,10 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+
 import java.math.BigDecimal;
 import java.util.List;
 
@@ -38,22 +42,22 @@ class GetAllExercisesUseCaseImplTest {
                         .metFactor(new BigDecimal("3.0")).trackingType(TrackingType.TIME_ONLY).build()
         );
 
-        when(exerciseRepositoryPort.findAll()).thenReturn(exercises);
+        when(exerciseRepositoryPort.findAll(any(PageRequest.class))).thenReturn(new PageImpl<>(exercises));
 
-        List<ExerciseResponseDto> result = useCase.execute();
+        Page<ExerciseResponseDto> result = useCase.execute(PageRequest.of(0, 10));
 
-        assertEquals(2, result.size());
-        assertEquals("Squat", result.get(0).name());
-        assertEquals(TrackingType.WEIGHT_REPS, result.get(0).trackingType());
-        assertEquals("Plank", result.get(1).name());
-        assertEquals(TrackingType.TIME_ONLY, result.get(1).trackingType());
+        assertEquals(2, result.getContent().size());
+        assertEquals("Squat", result.getContent().get(0).name());
+        assertEquals(TrackingType.WEIGHT_REPS, result.getContent().get(0).trackingType());
+        assertEquals("Plank", result.getContent().get(1).name());
+        assertEquals(TrackingType.TIME_ONLY, result.getContent().get(1).trackingType());
     }
 
     @Test
     void shouldReturnEmptyListWhenNoExercises() {
-        when(exerciseRepositoryPort.findAll()).thenReturn(List.of());
+        when(exerciseRepositoryPort.findAll(any(PageRequest.class))).thenReturn(new PageImpl<>(List.of()));
 
-        List<ExerciseResponseDto> result = useCase.execute();
+        Page<ExerciseResponseDto> result = useCase.execute(PageRequest.of(0, 10));
 
         assertTrue(result.isEmpty());
     }

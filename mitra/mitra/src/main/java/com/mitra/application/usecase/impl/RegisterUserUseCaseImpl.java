@@ -6,6 +6,7 @@ import com.mitra.application.port.out.UserRepositoryPort;
 import com.mitra.application.usecase.RegisterUserUseCase;
 import com.mitra.domain.model.BodyMeasurement;
 import com.mitra.domain.model.User;
+import com.mitra.domain.model.enums.Role;
 import com.mitra.presentation.dto.request.CreateUserRequestDto;
 
 import java.time.LocalDate;
@@ -38,6 +39,7 @@ public class RegisterUserUseCaseImpl implements RegisterUserUseCase {
                 .birthDate(request.birthDate())
                 .gender(request.gender())
                 .heightCm(request.heightCm())
+                .role(Role.USER)
                 .build();
 
         User savedUser = userRepository.save(user);

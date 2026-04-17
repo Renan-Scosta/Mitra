@@ -9,6 +9,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.data.jpa.test.autoconfigure.DataJpaTest;
 import org.springframework.test.context.ActiveProfiles;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+
 import java.math.BigDecimal;
 import java.util.List;
 import java.util.Optional;
@@ -58,9 +61,9 @@ class ExerciseRepositoryAdapterTest {
                 .name("Plank").muscleGroup("Core")
                 .metFactor(new BigDecimal("3.0")).trackingType(TrackingType.TIME_ONLY).build());
 
-        List<Exercise> all = adapter.findAll();
+        Page<Exercise> all = adapter.findAll(PageRequest.of(0, 10));
 
-        assertEquals(2, all.size());
+        assertEquals(2, all.getContent().size());
     }
 
     @Test

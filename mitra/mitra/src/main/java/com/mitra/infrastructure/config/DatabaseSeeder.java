@@ -1,6 +1,7 @@
 package com.mitra.infrastructure.config;
 
 import com.mitra.domain.model.enums.Gender;
+import com.mitra.domain.model.enums.Role;
 import com.mitra.infrastructure.persistence.entity.UserEntity;
 import com.mitra.infrastructure.persistence.repository.UserJpaRepository;
 import org.springframework.boot.CommandLineRunner;
@@ -32,9 +33,24 @@ public class DatabaseSeeder implements CommandLineRunner {
                     .birthDate(LocalDate.of(1990, 1, 1))
                     .gender(Gender.MALE)
                     .heightCm(180)
+                    .role(Role.ADMIN)
                     .build();
             
             userRepository.save(devUser);
+        }
+
+        if (userRepository.findByEmail("user@mitra.com").isEmpty()) {
+            UserEntity normalUser = UserEntity.builder()
+                    .name("Normal User")
+                    .email("user@mitra.com")
+                    .password(passwordEncoder.encode("123456"))
+                    .birthDate(LocalDate.of(1995, 5, 5))
+                    .gender(Gender.FEMALE)
+                    .heightCm(165)
+                    .role(Role.USER)
+                    .build();
+            
+            userRepository.save(normalUser);
         }
     }
 }

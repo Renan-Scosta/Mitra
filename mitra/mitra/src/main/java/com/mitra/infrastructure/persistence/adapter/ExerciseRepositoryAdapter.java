@@ -4,11 +4,11 @@ import com.mitra.application.port.out.ExerciseRepositoryPort;
 import com.mitra.domain.model.Exercise;
 import com.mitra.infrastructure.persistence.mapper.ExerciseMapper;
 import com.mitra.infrastructure.persistence.repository.ExerciseJpaRepository;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Repository;
 
-import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 @Repository
 public class ExerciseRepositoryAdapter implements ExerciseRepositoryPort {
@@ -26,10 +26,9 @@ public class ExerciseRepositoryAdapter implements ExerciseRepositoryPort {
     }
 
     @Override
-    public List<Exercise> findAll() {
-        return jpaRepository.findAll().stream()
-                .map(ExerciseMapper::toDomain)
-                .collect(Collectors.toList());
+    public Page<Exercise> findAll(Pageable pageable) {
+        return jpaRepository.findAll(pageable)
+                .map(ExerciseMapper::toDomain);
     }
 
     @Override

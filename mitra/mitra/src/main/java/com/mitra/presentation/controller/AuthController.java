@@ -1,8 +1,10 @@
 package com.mitra.presentation.controller;
 
 import com.mitra.application.port.out.UserRepositoryPort;
+import com.mitra.application.usecase.GoogleLoginUseCase;
 import com.mitra.domain.model.User;
 import com.mitra.infrastructure.security.TokenService;
+import com.mitra.presentation.dto.request.GoogleLoginRequestDto;
 import com.mitra.presentation.dto.request.LoginRequestDto;
 import com.mitra.presentation.dto.response.TokenResponseDto;
 import io.swagger.v3.oas.annotations.Operation;
@@ -23,12 +25,14 @@ public class AuthController {
     private final UserRepositoryPort userRepositoryPort;
     private final TokenService tokenService;
     private final PasswordEncoder passwordEncoder;
+    private final GoogleLoginUseCase googleLoginUseCase;
 
     public AuthController(UserRepositoryPort userRepositoryPort, TokenService tokenService,
-                          PasswordEncoder passwordEncoder) {
+                          PasswordEncoder passwordEncoder, GoogleLoginUseCase googleLoginUseCase) {
         this.userRepositoryPort = userRepositoryPort;
         this.tokenService = tokenService;
         this.passwordEncoder = passwordEncoder;
+        this.googleLoginUseCase = googleLoginUseCase;
     }
 
     @Operation(summary = "Login an existing user", description = "Receives email and password to authenticate and return a JWT")
@@ -50,5 +54,18 @@ public class AuthController {
         String token = tokenService.generateToken(user.getEmail(), user.getId());
 
         return ResponseEntity.ok(new TokenResponseDto(token));
+    }
+
+    @Operation(summary = "Login with Google", description = "Receives a Google idToken and returns a JWT")
+    @ApiResponse(responseCode = "200", description = "Authentication successful and token returned")
+    @ApiResponse(responseCode = "400", description = "Invalid token")
+    @PostMapping("/google")
+    public ResponseEntity<TokenResponseDto> googleLogin(@Valid @RequestBody GoogleLoginRequestDto request) {
+        try {
+            String token = googleLoginUseCase.execute(request.idToken());
+            return ResponseEntity.ok(new TokenResponseDto(token));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().build();
+        }
     }
 }
