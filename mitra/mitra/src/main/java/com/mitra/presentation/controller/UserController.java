@@ -2,12 +2,15 @@ package com.mitra.presentation.controller;
 
 import com.mitra.application.usecase.CalculateBmrUseCase;
 import com.mitra.application.usecase.RegisterUserUseCase;
+import com.mitra.domain.model.User;
 import com.mitra.presentation.dto.request.CreateUserRequestDto;
 import com.mitra.presentation.dto.response.BmrResponseDto;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.net.URI;
@@ -30,23 +33,22 @@ public class UserController {
     @ApiResponse(responseCode = "201", description = "User successfully created")
     @ApiResponse(responseCode = "400", description = "Invalid request data")
     @PostMapping
-    public ResponseEntity<Object> registerUser(@RequestBody CreateUserRequestDto request) {
+    public ResponseEntity<Object> registerUser(@Valid @RequestBody CreateUserRequestDto request) {
         if (!request.password().equals(request.confirmPassword())) {
             return ResponseEntity.badRequest().body("Passwords do not match");
         }
-        
+
         Long userId = registerUserUseCase.execute(request);
         return ResponseEntity.created(URI.create("/api/v1/users/" + userId)).build();
     }
 
-    @Operation(summary = "Calculate my BMR", description = "Calculates the current Basal Metabolic Rate based on the Harris-Benedict formula using the last recorded weight for the authenticated user")
+    @Operation(summary = "Calculate my BMR", description = "Calculates the current Basal Metabolic Rate based on the Mifflin-St Jeor formula using the last recorded weight for the authenticated user")
     @ApiResponse(responseCode = "200", description = "Calculation completed successfully")
     @ApiResponse(responseCode = "404", description = "User not found")
     @GetMapping("/me/bmr")
-    public ResponseEntity<BmrResponseDto> getMyBmr(@org.springframework.security.core.annotation.AuthenticationPrincipal com.mitra.domain.model.User currentUser) {
+    public ResponseEntity<BmrResponseDto> getMyBmr(@AuthenticationPrincipal User currentUser) {
         double bmr = calculateBmrUseCase.execute(currentUser.getId());
         BmrResponseDto response = new BmrResponseDto(bmr, LocalDateTime.now());
         return ResponseEntity.ok(response);
     }
 }
-

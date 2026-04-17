@@ -14,6 +14,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
@@ -45,6 +46,7 @@ class RegisterUserUseCaseImplTest {
                 Gender.MALE, 180, new BigDecimal("80.5"), "password123", "password123"
         );
 
+        when(userRepositoryPort.findByEmail("test@mitra.com")).thenReturn(Optional.empty());
         when(passwordEncoderPort.encode("password123")).thenReturn("$2a$encoded");
         when(userRepositoryPort.save(any(User.class)))
                 .thenAnswer(invocation -> {
@@ -81,6 +83,7 @@ class RegisterUserUseCaseImplTest {
                 Gender.FEMALE, 165, new BigDecimal("60.0"), "secret", "secret"
         );
 
+        when(userRepositoryPort.findByEmail("u@m.com")).thenReturn(Optional.empty());
         when(passwordEncoderPort.encode("secret")).thenReturn("$2a$hashed");
         when(userRepositoryPort.save(any(User.class)))
                 .thenReturn(User.builder().id(2L).password("$2a$hashed").build());
@@ -88,5 +91,20 @@ class RegisterUserUseCaseImplTest {
         useCase.execute(request);
 
         verify(userRepositoryPort).save(argThat(u -> u.getPassword().equals("$2a$hashed")));
+    }
+
+    @Test
+    void shouldThrowWhenEmailAlreadyRegistered() {
+        CreateUserRequestDto request = new CreateUserRequestDto(
+                "User", "existing@mitra.com", LocalDate.of(1990, 5, 10),
+                Gender.MALE, 175, new BigDecimal("75.0"), "pass123", "pass123"
+        );
+
+        when(userRepositoryPort.findByEmail("existing@mitra.com"))
+                .thenReturn(Optional.of(User.builder().id(99L).email("existing@mitra.com").build()));
+
+        assertThrows(IllegalStateException.class, () -> useCase.execute(request));
+        verify(userRepositoryPort, never()).save(any());
+        verify(passwordEncoderPort, never()).encode(any());
     }
 }

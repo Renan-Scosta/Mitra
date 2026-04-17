@@ -82,8 +82,8 @@ class UserControllerTest {
                     "gender": "MALE",
                     "heightCm": 180,
                     "initialWeightKg": 80.5,
-                    "password": "pass",
-                    "confirmPassword": "pass"
+                    "password": "pass123",
+                    "confirmPassword": "pass123"
                 }
                 """;
 

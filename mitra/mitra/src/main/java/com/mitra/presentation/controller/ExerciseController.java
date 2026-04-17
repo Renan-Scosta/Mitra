@@ -7,6 +7,7 @@ import com.mitra.presentation.dto.response.ExerciseResponseDto;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -30,7 +31,7 @@ public class ExerciseController {
     @ApiResponse(responseCode = "201", description = "Exercise successfully created")
     @ApiResponse(responseCode = "400", description = "Invalid request data")
     @PostMapping
-    public ResponseEntity<Void> createExercise(@RequestBody CreateExerciseRequestDto request) {
+    public ResponseEntity<Void> createExercise(@Valid @RequestBody CreateExerciseRequestDto request) {
         Long exerciseId = createExerciseUseCase.execute(request);
         return ResponseEntity.created(URI.create("/api/v1/exercises/" + exerciseId)).build();
     }

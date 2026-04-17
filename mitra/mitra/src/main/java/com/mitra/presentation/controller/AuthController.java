@@ -8,7 +8,9 @@ import com.mitra.presentation.dto.response.TokenResponseDto;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Optional;
@@ -20,10 +22,10 @@ public class AuthController {
 
     private final UserRepositoryPort userRepositoryPort;
     private final TokenService tokenService;
-    private final org.springframework.security.crypto.password.PasswordEncoder passwordEncoder;
+    private final PasswordEncoder passwordEncoder;
 
     public AuthController(UserRepositoryPort userRepositoryPort, TokenService tokenService,
-                          org.springframework.security.crypto.password.PasswordEncoder passwordEncoder) {
+                          PasswordEncoder passwordEncoder) {
         this.userRepositoryPort = userRepositoryPort;
         this.tokenService = tokenService;
         this.passwordEncoder = passwordEncoder;
@@ -33,20 +35,20 @@ public class AuthController {
     @ApiResponse(responseCode = "200", description = "Authentication successful and token returned")
     @ApiResponse(responseCode = "401", description = "Unauthorized - Invalid credentials")
     @PostMapping("/login")
-    public ResponseEntity<TokenResponseDto> login(@RequestBody LoginRequestDto request) {
+    public ResponseEntity<TokenResponseDto> login(@Valid @RequestBody LoginRequestDto request) {
         Optional<User> userOpt = userRepositoryPort.findByEmail(request.email());
-        
+
         if (userOpt.isEmpty()) {
             return ResponseEntity.status(401).build();
         }
-        
+
         User user = userOpt.get();
         if (!passwordEncoder.matches(request.password(), user.getPassword())) {
             return ResponseEntity.status(401).build();
         }
-        
+
         String token = tokenService.generateToken(user.getEmail(), user.getId());
-        
+
         return ResponseEntity.ok(new TokenResponseDto(token));
     }
 }

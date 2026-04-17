@@ -1,6 +1,7 @@
 package com.mitra.application.usecase.impl;
 
 import com.mitra.application.port.out.BodyMeasurementRepositoryPort;
+import com.mitra.application.port.out.PasswordEncoderPort;
 import com.mitra.application.port.out.UserRepositoryPort;
 import com.mitra.application.usecase.RegisterUserUseCase;
 import com.mitra.domain.model.BodyMeasurement;
@@ -13,12 +14,12 @@ public class RegisterUserUseCaseImpl implements RegisterUserUseCase {
 
     private final UserRepositoryPort userRepository;
     private final BodyMeasurementRepositoryPort bodyMeasurementRepository;
-    private final com.mitra.application.port.out.PasswordEncoderPort passwordEncoderPort;
+    private final PasswordEncoderPort passwordEncoderPort;
 
     public RegisterUserUseCaseImpl(
             UserRepositoryPort userRepository,
             BodyMeasurementRepositoryPort bodyMeasurementRepository,
-            com.mitra.application.port.out.PasswordEncoderPort passwordEncoderPort) {
+            PasswordEncoderPort passwordEncoderPort) {
         this.userRepository = userRepository;
         this.bodyMeasurementRepository = bodyMeasurementRepository;
         this.passwordEncoderPort = passwordEncoderPort;
@@ -26,6 +27,10 @@ public class RegisterUserUseCaseImpl implements RegisterUserUseCase {
 
     @Override
     public Long execute(CreateUserRequestDto request) {
+        userRepository.findByEmail(request.email()).ifPresent(existing -> {
+            throw new IllegalStateException("Email already registered: " + request.email());
+        });
+
         User user = User.builder()
                 .name(request.name())
                 .email(request.email())

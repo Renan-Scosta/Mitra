@@ -1,8 +1,11 @@
 package com.mitra.infrastructure.config;
 
 import com.mitra.application.port.out.BodyMeasurementRepositoryPort;
+import com.mitra.application.port.out.PasswordEncoderPort;
 import com.mitra.application.port.out.UserRepositoryPort;
 import com.mitra.application.usecase.CalculateBmrUseCase;
+import com.mitra.application.usecase.RegisterUserUseCase;
+import com.mitra.application.usecase.impl.RegisterUserUseCaseImpl;
 import com.mitra.domain.service.BmrCalculator;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -24,10 +27,10 @@ public class UseCaseConfig {
     }
 
     @Bean
-    public com.mitra.application.usecase.RegisterUserUseCase registerUserUseCase(
+    public RegisterUserUseCase registerUserUseCase(
             UserRepositoryPort userRepositoryPort,
             BodyMeasurementRepositoryPort bodyMeasurementRepositoryPort,
-            com.mitra.application.port.out.PasswordEncoderPort passwordEncoderPort) {
-        return new com.mitra.application.usecase.impl.RegisterUserUseCaseImpl(userRepositoryPort, bodyMeasurementRepositoryPort, passwordEncoderPort);
+            PasswordEncoderPort passwordEncoderPort) {
+        return new RegisterUserUseCaseImpl(userRepositoryPort, bodyMeasurementRepositoryPort, passwordEncoderPort);
     }
 }

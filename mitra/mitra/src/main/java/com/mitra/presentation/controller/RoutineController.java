@@ -3,6 +3,7 @@ package com.mitra.presentation.controller;
 import com.mitra.application.usecase.AddRoutineExerciseUseCase;
 import com.mitra.application.usecase.CreateWorkoutRoutineUseCase;
 import com.mitra.application.usecase.GetWorkoutRoutinesUseCase;
+import com.mitra.domain.model.User;
 import com.mitra.presentation.dto.request.AddRoutineExerciseRequestDto;
 import com.mitra.presentation.dto.request.CreateRoutineRequestDto;
 import com.mitra.presentation.dto.response.RoutineExerciseResponseDto;
@@ -10,7 +11,9 @@ import com.mitra.presentation.dto.response.RoutineResponseDto;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.net.URI;
@@ -38,8 +41,8 @@ public class RoutineController {
     @ApiResponse(responseCode = "201", description = "Routine successfully created")
     @ApiResponse(responseCode = "400", description = "Invalid request data")
     @PostMapping
-    public ResponseEntity<Void> createRoutine(@RequestBody CreateRoutineRequestDto request,
-                                              @org.springframework.security.core.annotation.AuthenticationPrincipal com.mitra.domain.model.User currentUser) {
+    public ResponseEntity<Void> createRoutine(@Valid @RequestBody CreateRoutineRequestDto request,
+                                              @AuthenticationPrincipal User currentUser) {
         Long routineId = createWorkoutRoutineUseCase.execute(currentUser.getId(), request);
         return ResponseEntity.created(URI.create("/api/v1/routines/" + routineId)).build();
     }
@@ -47,7 +50,7 @@ public class RoutineController {
     @Operation(summary = "Get my routines", description = "Retrieves all workout routines belonging to the authenticated user")
     @ApiResponse(responseCode = "200", description = "Routines retrieved successfully")
     @GetMapping
-    public ResponseEntity<List<RoutineResponseDto>> getMyRoutines(@org.springframework.security.core.annotation.AuthenticationPrincipal com.mitra.domain.model.User currentUser) {
+    public ResponseEntity<List<RoutineResponseDto>> getMyRoutines(@AuthenticationPrincipal User currentUser) {
         List<RoutineResponseDto> routines = getWorkoutRoutinesUseCase.execute(currentUser.getId());
         return ResponseEntity.ok(routines);
     }
@@ -58,7 +61,7 @@ public class RoutineController {
     @PostMapping("/{routineId}/exercises")
     public ResponseEntity<RoutineExerciseResponseDto> addExerciseToRoutine(
             @PathVariable Long routineId,
-            @RequestBody AddRoutineExerciseRequestDto request) {
+            @Valid @RequestBody AddRoutineExerciseRequestDto request) {
         RoutineExerciseResponseDto response = addRoutineExerciseUseCase.execute(routineId, request);
         return ResponseEntity.ok(response);
     }
