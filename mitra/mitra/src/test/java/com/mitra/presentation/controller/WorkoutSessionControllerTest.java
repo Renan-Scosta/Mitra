@@ -5,10 +5,12 @@ import com.mitra.application.usecase.StartWorkoutSessionUseCase;
 import com.mitra.application.usecase.FinishWorkoutSessionUseCase;
 import com.mitra.application.usecase.GetWorkoutSessionUseCase;
 import com.mitra.application.usecase.GetUserSessionsUseCase;
+import com.mitra.application.usecase.CalculateSessionCaloriesUseCase;
 import com.mitra.domain.model.User;
 import com.mitra.presentation.dto.response.SetRecordResponseDto;
 import com.mitra.presentation.dto.response.SessionSummaryResponseDto;
 import com.mitra.presentation.dto.response.WorkoutSessionResponseDto;
+import com.mitra.presentation.dto.response.SessionCaloriesResponseDto;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -58,6 +60,9 @@ class WorkoutSessionControllerTest {
 
     @MockitoBean
     private GetUserSessionsUseCase getUserSessionsUseCase;
+
+    @MockitoBean
+    private CalculateSessionCaloriesUseCase calculateSessionCaloriesUseCase;
 
     @MockitoBean
     private com.mitra.application.port.out.UserRepositoryPort userRepositoryPort;
@@ -113,13 +118,14 @@ class WorkoutSessionControllerTest {
 
     @Test
     void shouldFinishSessionAndReturn200() throws Exception {
-        SessionSummaryResponseDto summary = new SessionSummaryResponseDto(100L, 15, 60L);
+        SessionSummaryResponseDto summary = new SessionSummaryResponseDto(100L, 15, 60L, 300.0);
         when(finishWorkoutSessionUseCase.execute(1L, 100L)).thenReturn(summary);
 
         mockMvc.perform(post("/api/v1/sessions/100/finish"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.totalSets").value(15))
-                .andExpect(jsonPath("$.effectiveDurationMinutes").value(60));
+                .andExpect(jsonPath("$.effectiveDurationMinutes").value(60))
+                .andExpect(jsonPath("$.estimatedCalories").value(300.0));
     }
 
     @Test
@@ -151,5 +157,18 @@ class WorkoutSessionControllerTest {
                 .andExpect(jsonPath("$.length()").value(2))
                 .andExpect(jsonPath("$[0].active").value(false))
                 .andExpect(jsonPath("$[1].active").value(true));
+    }
+
+    @Test
+    void shouldCalculateSessionCaloriesAndReturn200() throws Exception {
+        SessionCaloriesResponseDto.ExerciseCaloriesDto exDto = new SessionCaloriesResponseDto.ExerciseCaloriesDto("Squat", 150.5);
+        SessionCaloriesResponseDto responseDto = new SessionCaloriesResponseDto(100L, 150.5, List.of(exDto));
+        
+        when(calculateSessionCaloriesUseCase.execute(1L, 100L)).thenReturn(responseDto);
+
+        mockMvc.perform(get("/api/v1/sessions/100/calories"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.totalCalories").value(150.5))
+                .andExpect(jsonPath("$.perExercise[0].exerciseName").value("Squat"));
     }
 }

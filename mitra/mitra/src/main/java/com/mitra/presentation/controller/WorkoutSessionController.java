@@ -1,5 +1,6 @@
 package com.mitra.presentation.controller;
 
+import com.mitra.application.usecase.CalculateSessionCaloriesUseCase;
 import com.mitra.application.usecase.FinishWorkoutSessionUseCase;
 import com.mitra.application.usecase.GetUserSessionsUseCase;
 import com.mitra.application.usecase.GetWorkoutSessionUseCase;
@@ -8,6 +9,7 @@ import com.mitra.application.usecase.StartWorkoutSessionUseCase;
 import com.mitra.domain.model.User;
 import com.mitra.presentation.dto.request.LogSetRequestDto;
 import com.mitra.presentation.dto.request.StartSessionRequestDto;
+import com.mitra.presentation.dto.response.SessionCaloriesResponseDto;
 import com.mitra.presentation.dto.response.SessionSummaryResponseDto;
 import com.mitra.presentation.dto.response.SetRecordResponseDto;
 import com.mitra.presentation.dto.response.WorkoutSessionResponseDto;
@@ -32,17 +34,20 @@ public class WorkoutSessionController {
     private final FinishWorkoutSessionUseCase finishWorkoutSessionUseCase;
     private final GetWorkoutSessionUseCase getWorkoutSessionUseCase;
     private final GetUserSessionsUseCase getUserSessionsUseCase;
+    private final CalculateSessionCaloriesUseCase calculateSessionCaloriesUseCase;
 
     public WorkoutSessionController(StartWorkoutSessionUseCase startWorkoutSessionUseCase,
                                     LogSetRecordUseCase logSetRecordUseCase,
                                     FinishWorkoutSessionUseCase finishWorkoutSessionUseCase,
                                     GetWorkoutSessionUseCase getWorkoutSessionUseCase,
-                                    GetUserSessionsUseCase getUserSessionsUseCase) {
+                                    GetUserSessionsUseCase getUserSessionsUseCase,
+                                    CalculateSessionCaloriesUseCase calculateSessionCaloriesUseCase) {
         this.startWorkoutSessionUseCase = startWorkoutSessionUseCase;
         this.logSetRecordUseCase = logSetRecordUseCase;
         this.finishWorkoutSessionUseCase = finishWorkoutSessionUseCase;
         this.getWorkoutSessionUseCase = getWorkoutSessionUseCase;
         this.getUserSessionsUseCase = getUserSessionsUseCase;
+        this.calculateSessionCaloriesUseCase = calculateSessionCaloriesUseCase;
     }
 
     @Operation(summary = "Start a new workout session", description = "Initiates a session to execute a specific routine for the authenticated user")
@@ -92,5 +97,15 @@ public class WorkoutSessionController {
                                                                 @AuthenticationPrincipal User currentUser) {
         WorkoutSessionResponseDto sessionDto = getWorkoutSessionUseCase.execute(currentUser.getId(), sessionId);
         return ResponseEntity.ok(sessionDto);
+    }
+
+    @Operation(summary = "Calculate session calories", description = "Returns estimated calorie expenditure for the session broken down by exercise")
+    @ApiResponse(responseCode = "200", description = "Calories calculated successfully")
+    @ApiResponse(responseCode = "403", description = "Session does not belong to the authenticated user")
+    @GetMapping("/{sessionId}/calories")
+    public ResponseEntity<SessionCaloriesResponseDto> getSessionCalories(@PathVariable Long sessionId,
+                                                                         @AuthenticationPrincipal User currentUser) {
+        SessionCaloriesResponseDto caloriesDto = calculateSessionCaloriesUseCase.execute(currentUser.getId(), sessionId);
+        return ResponseEntity.ok(caloriesDto);
     }
 }

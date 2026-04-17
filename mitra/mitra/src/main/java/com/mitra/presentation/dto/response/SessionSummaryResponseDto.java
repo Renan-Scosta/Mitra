@@ -9,6 +9,8 @@ public record SessionSummaryResponseDto(
         @Schema(description = "Total number of sets completed", example = "15")
         Integer totalSets,
         @Schema(description = "Effective duration of the workout in minutes", example = "45")
-        Long effectiveDurationMinutes
+        Long effectiveDurationMinutes,
+        @Schema(description = "Estimated calories burned (null if user weight is not recorded)", example = "245.5")
+        Double estimatedCalories
 ) {
 }

@@ -2,24 +2,25 @@ package com.mitra.application.usecase.impl;
 
 import com.mitra.application.port.out.BodyMeasurementRepositoryPort;
 import com.mitra.application.port.out.WorkoutSessionRepositoryPort;
-import com.mitra.application.usecase.FinishWorkoutSessionUseCase;
+import com.mitra.application.usecase.CalculateSessionCaloriesUseCase;
 import com.mitra.domain.model.BodyMeasurement;
 import com.mitra.domain.model.WorkoutSession;
 import com.mitra.domain.service.CalorieCalculator;
 import com.mitra.domain.service.CalorieResult;
-import com.mitra.presentation.dto.response.SessionSummaryResponseDto;
+import com.mitra.presentation.dto.response.SessionCaloriesResponseDto;
 import org.springframework.stereotype.Service;
 
-import java.util.Optional;
+import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
-public class FinishWorkoutSessionUseCaseImpl implements FinishWorkoutSessionUseCase {
+public class CalculateSessionCaloriesUseCaseImpl implements CalculateSessionCaloriesUseCase {
 
     private final WorkoutSessionRepositoryPort workoutSessionRepositoryPort;
     private final BodyMeasurementRepositoryPort bodyMeasurementRepositoryPort;
     private final CalorieCalculator calorieCalculator;
 
-    public FinishWorkoutSessionUseCaseImpl(
+    public CalculateSessionCaloriesUseCaseImpl(
             WorkoutSessionRepositoryPort workoutSessionRepositoryPort,
             BodyMeasurementRepositoryPort bodyMeasurementRepositoryPort) {
         this.workoutSessionRepositoryPort = workoutSessionRepositoryPort;
@@ -28,7 +29,7 @@ public class FinishWorkoutSessionUseCaseImpl implements FinishWorkoutSessionUseC
     }
 
     @Override
-    public SessionSummaryResponseDto execute(Long userId, Long sessionId) {
+    public SessionCaloriesResponseDto execute(Long userId, Long sessionId) {
         WorkoutSession session = workoutSessionRepositoryPort.findById(sessionId)
                 .orElseThrow(() -> new IllegalArgumentException("Session not found"));
 
@@ -36,20 +37,19 @@ public class FinishWorkoutSessionUseCaseImpl implements FinishWorkoutSessionUseC
             throw new SecurityException("You do not own this session");
         }
 
-        session.finish();
-        WorkoutSession saved = workoutSessionRepositoryPort.save(session);
+        BodyMeasurement measurement = bodyMeasurementRepositoryPort.findLatestByUserId(userId)
+                .orElseThrow(() -> new IllegalStateException("No body measurement found. Please record your weight first."));
 
-        int totalSets = saved.getSetRecords() != null ? saved.getSetRecords().size() : 0;
-        long durationMinutes = saved.getEffectiveDuration().toMinutes();
+        CalorieResult result = calorieCalculator.calculate(session.getSetRecords(), measurement.getWeightKg());
 
-        // Calculate calories gracefully
-        Double estimatedCalories = null;
-        Optional<BodyMeasurement> measurementOpt = bodyMeasurementRepositoryPort.findLatestByUserId(userId);
-        if (measurementOpt.isPresent() && saved.getSetRecords() != null && !saved.getSetRecords().isEmpty()) {
-            CalorieResult result = calorieCalculator.calculate(saved.getSetRecords(), measurementOpt.get().getWeightKg());
-            estimatedCalories = result.totalCalories();
-        }
+        List<SessionCaloriesResponseDto.ExerciseCaloriesDto> perExerciseDtos = result.perExercise().stream()
+                .map(e -> new SessionCaloriesResponseDto.ExerciseCaloriesDto(e.exerciseName(), e.calories()))
+                .collect(Collectors.toList());
 
-        return new SessionSummaryResponseDto(saved.getId(), totalSets, durationMinutes, estimatedCalories);
+        return new SessionCaloriesResponseDto(
+                sessionId,
+                result.totalCalories(),
+                perExerciseDtos
+        );
     }
 }
