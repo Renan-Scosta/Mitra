@@ -48,15 +48,16 @@ class GetWorkoutRoutinesUseCaseImplTest {
                 .routineExercises(List.of(re))
                 .build();
 
-        when(workoutRoutineRepositoryPort.findByUserId(1L)).thenReturn(List.of(routine));
+        when(workoutRoutineRepositoryPort.findByUserId(eq(1L), any(org.springframework.data.domain.Pageable.class)))
+                .thenReturn(new org.springframework.data.domain.PageImpl<>(List.of(routine)));
 
-        List<RoutineResponseDto> result = useCase.execute(1L);
+        var result = useCase.execute(1L, org.springframework.data.domain.PageRequest.of(0, 10));
 
-        assertEquals(1, result.size());
-        assertEquals("Full Body", result.get(0).name());
-        assertEquals(1, result.get(0).exercises().size());
-        assertEquals("Squat", result.get(0).exercises().get(0).exercise().name());
-        assertEquals(4, result.get(0).exercises().get(0).targetSets());
+        assertEquals(1, result.getTotalElements());
+        assertEquals("Full Body", result.getContent().get(0).name());
+        assertEquals(1, result.getContent().get(0).exercises().size());
+        assertEquals("Squat", result.getContent().get(0).exercises().get(0).exercise().name());
+        assertEquals(4, result.getContent().get(0).exercises().get(0).targetSets());
     }
 
     @Test
@@ -66,19 +67,21 @@ class GetWorkoutRoutinesUseCaseImplTest {
                 .routineExercises(null)
                 .build();
 
-        when(workoutRoutineRepositoryPort.findByUserId(1L)).thenReturn(List.of(routine));
+        when(workoutRoutineRepositoryPort.findByUserId(eq(1L), any(org.springframework.data.domain.Pageable.class)))
+                .thenReturn(new org.springframework.data.domain.PageImpl<>(List.of(routine)));
 
-        List<RoutineResponseDto> result = useCase.execute(1L);
+        var result = useCase.execute(1L, org.springframework.data.domain.PageRequest.of(0, 10));
 
-        assertEquals(1, result.size());
-        assertTrue(result.get(0).exercises().isEmpty());
+        assertEquals(1, result.getTotalElements());
+        assertTrue(result.getContent().get(0).exercises().isEmpty());
     }
 
     @Test
     void shouldReturnEmptyListWhenNoRoutines() {
-        when(workoutRoutineRepositoryPort.findByUserId(99L)).thenReturn(List.of());
+        when(workoutRoutineRepositoryPort.findByUserId(eq(99L), any(org.springframework.data.domain.Pageable.class)))
+                .thenReturn(org.springframework.data.domain.Page.empty());
 
-        List<RoutineResponseDto> result = useCase.execute(99L);
+        var result = useCase.execute(99L, org.springframework.data.domain.PageRequest.of(0, 10));
 
         assertTrue(result.isEmpty());
     }

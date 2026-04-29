@@ -10,7 +10,9 @@ import com.mitra.domain.model.enums.Role;
 import com.mitra.presentation.dto.request.CreateUserRequestDto;
 
 import java.time.LocalDate;
+import org.springframework.stereotype.Service;
 
+@Service
 public class RegisterUserUseCaseImpl implements RegisterUserUseCase {
 
     private final UserRepositoryPort userRepository;

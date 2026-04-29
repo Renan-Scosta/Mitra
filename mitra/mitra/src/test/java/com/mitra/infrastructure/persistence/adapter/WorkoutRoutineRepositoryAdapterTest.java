@@ -64,20 +64,24 @@ class WorkoutRoutineRepositoryAdapterTest {
 
     @Test
     void shouldFindRoutinesByUserId() {
-        User user = createAndSaveUser();
+        User savedUser = createAndSaveUser();
+        WorkoutRoutine routine = WorkoutRoutine.builder()
+                .userId(savedUser.getId())
+                .name("Push Day")
+                .build();
+        adapter.save(routine);
 
-        adapter.save(WorkoutRoutine.builder().userId(user.getId()).name("Routine A").build());
-        adapter.save(WorkoutRoutine.builder().userId(user.getId()).name("Routine B").build());
-
-        List<WorkoutRoutine> routines = adapter.findByUserId(user.getId());
-
-        assertEquals(2, routines.size());
+        var page = adapter.findByUserId(savedUser.getId(), org.springframework.data.domain.PageRequest.of(0, 10));
+        assertFalse(page.isEmpty());
+        assertEquals(1, page.getTotalElements());
+        assertEquals("Push Day", page.getContent().get(0).getName());
     }
 
     @Test
     void shouldReturnEmptyListWhenNoRoutinesForUser() {
-        List<WorkoutRoutine> routines = adapter.findByUserId(999L);
-        assertTrue(routines.isEmpty());
+        User savedUser = createAndSaveUser();
+        var page = adapter.findByUserId(savedUser.getId(), org.springframework.data.domain.PageRequest.of(0, 10));
+        assertTrue(page.isEmpty());
     }
 
     @Test

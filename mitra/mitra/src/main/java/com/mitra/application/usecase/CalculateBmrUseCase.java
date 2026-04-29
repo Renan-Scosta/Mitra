@@ -5,6 +5,7 @@ import com.mitra.application.port.out.UserRepositoryPort;
 import com.mitra.domain.model.BodyMeasurement;
 import com.mitra.domain.model.User;
 import com.mitra.domain.service.BmrCalculator;
+import org.springframework.stereotype.Service;
 
 /**
  * Use case: calculates the Basal Metabolic Rate (BMR) for a given user.
@@ -12,6 +13,7 @@ import com.mitra.domain.service.BmrCalculator;
  * <p>Orchestrates the retrieval of the user profile and their latest body measurement,
  * then delegates the calculation to the {@link BmrCalculator} domain service.
  */
+@Service
 public class CalculateBmrUseCase {
 
     private final UserRepositoryPort userRepository;

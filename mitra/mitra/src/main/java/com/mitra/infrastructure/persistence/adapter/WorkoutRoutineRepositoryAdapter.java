@@ -5,11 +5,11 @@ import com.mitra.domain.model.WorkoutRoutine;
 import com.mitra.infrastructure.persistence.mapper.WorkoutRoutineMapper;
 import com.mitra.infrastructure.persistence.repository.UserJpaRepository;
 import com.mitra.infrastructure.persistence.repository.WorkoutRoutineJpaRepository;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Repository;
 
-import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 @Repository
 public class WorkoutRoutineRepositoryAdapter implements WorkoutRoutineRepositoryPort {
@@ -31,10 +31,9 @@ public class WorkoutRoutineRepositoryAdapter implements WorkoutRoutineRepository
     }
 
     @Override
-    public List<WorkoutRoutine> findByUserId(Long userId) {
-        return jpaRepository.findByUserId(userId).stream()
-                .map(WorkoutRoutineMapper::toDomain)
-                .collect(Collectors.toList());
+    public Page<WorkoutRoutine> findByUserId(Long userId, Pageable pageable) {
+        return jpaRepository.findByUserId(userId, pageable)
+                .map(WorkoutRoutineMapper::toDomain);
     }
 
     @Override

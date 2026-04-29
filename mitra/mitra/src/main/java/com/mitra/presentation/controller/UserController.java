@@ -10,7 +10,12 @@ import com.mitra.application.usecase.GetUserVolumeSummaryUseCase;
 import com.mitra.application.usecase.GetBodyMeasurementsUseCase;
 import com.mitra.domain.model.User;
 import com.mitra.presentation.dto.request.CreateUserRequestDto;
+import com.mitra.presentation.dto.request.UpdateUserPasswordRequestDto;
+import com.mitra.presentation.dto.request.UpdateUserProfileRequestDto;
 import com.mitra.presentation.dto.response.BmrResponseDto;
+import com.mitra.presentation.dto.response.DashboardResponseDto;
+import com.mitra.presentation.dto.response.UserProfileResponseDto;
+import com.mitra.presentation.dto.response.VolumeSummaryResponseDto;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -20,7 +25,9 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.net.URI;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Tag(name = "Users", description = "Endpoints for user management and baseline body metrics")
 @RestController
@@ -78,8 +85,8 @@ public class UserController {
     @ApiResponse(responseCode = "200", description = "Profile updated successfully")
     @ApiResponse(responseCode = "400", description = "Invalid request data")
     @PutMapping("/me")
-    public ResponseEntity<com.mitra.presentation.dto.response.UserProfileResponseDto> updateProfile(
-            @Valid @RequestBody com.mitra.presentation.dto.request.UpdateUserProfileRequestDto request,
+    public ResponseEntity<UserProfileResponseDto> updateProfile(
+            @Valid @RequestBody UpdateUserProfileRequestDto request,
             @AuthenticationPrincipal User currentUser) {
         var response = updateUserProfileUseCase.execute(currentUser.getId(), request);
         return ResponseEntity.ok(response);
@@ -91,7 +98,7 @@ public class UserController {
     @ApiResponse(responseCode = "403", description = "Current password is incorrect")
     @PutMapping("/me/password")
     public ResponseEntity<Void> updatePassword(
-            @Valid @RequestBody com.mitra.presentation.dto.request.UpdateUserPasswordRequestDto request,
+            @Valid @RequestBody UpdateUserPasswordRequestDto request,
             @AuthenticationPrincipal User currentUser) {
         updateUserPasswordUseCase.execute(currentUser.getId(), request);
         return ResponseEntity.noContent().build();
@@ -108,7 +115,7 @@ public class UserController {
     @Operation(summary = "Get User Dashboard", description = "Retrieves high-level summary statistics including current streak, workouts this week, calories, and latest session data.")
     @ApiResponse(responseCode = "200", description = "Dashboard retrieved successfully")
     @GetMapping("/me/dashboard")
-    public ResponseEntity<com.mitra.presentation.dto.response.DashboardResponseDto> getDashboard(@AuthenticationPrincipal User currentUser) {
+    public ResponseEntity<DashboardResponseDto> getDashboard(@AuthenticationPrincipal User currentUser) {
         var response = getUserDashboardUseCase.execute(currentUser.getId());
         return ResponseEntity.ok(response);
     }
@@ -116,13 +123,13 @@ public class UserController {
     @Operation(summary = "Get Volume Summary", description = "Retrieves the total lifted volume per muscle group across a specified date range.")
     @ApiResponse(responseCode = "200", description = "Volume summary retrieved successfully")
     @GetMapping("/me/volume-summary")
-    public ResponseEntity<java.util.List<com.mitra.presentation.dto.response.VolumeSummaryResponseDto>> getVolumeSummary(
+    public ResponseEntity<List<VolumeSummaryResponseDto>> getVolumeSummary(
             @AuthenticationPrincipal User currentUser,
-            @org.springframework.web.bind.annotation.RequestParam(defaultValue = "#{T(java.time.LocalDate).now().minusDays(7).toString()}") String startDate,
-            @org.springframework.web.bind.annotation.RequestParam(defaultValue = "#{T(java.time.LocalDate).now().toString()}") String endDate) {
+            @RequestParam(defaultValue = "#{T(java.time.LocalDate).now().minusDays(7).toString()}") String startDate,
+            @RequestParam(defaultValue = "#{T(java.time.LocalDate).now().toString()}") String endDate) {
         
-        java.time.LocalDateTime start = java.time.LocalDate.parse(startDate).atStartOfDay();
-        java.time.LocalDateTime end = java.time.LocalDate.parse(endDate).atTime(23, 59, 59);
+        LocalDateTime start = LocalDate.parse(startDate).atStartOfDay();
+        LocalDateTime end = LocalDate.parse(endDate).atTime(23, 59, 59);
         
         var response = getUserVolumeSummaryUseCase.execute(currentUser.getId(), start, end);
         return ResponseEntity.ok(response);

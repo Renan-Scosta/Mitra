@@ -1,9 +1,9 @@
 package com.mitra.application.usecase;
 
 import com.mitra.presentation.dto.response.BodyMeasurementResponseDto;
-
-import java.util.List;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 public interface GetBodyMeasurementsUseCase {
-    List<BodyMeasurementResponseDto> execute(Long userId);
+    Page<BodyMeasurementResponseDto> execute(Long userId, Pageable pageable);
 }

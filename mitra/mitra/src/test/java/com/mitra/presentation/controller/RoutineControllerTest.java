@@ -85,15 +85,15 @@ class RoutineControllerTest {
         ExerciseResponseDto exDto = new ExerciseResponseDto(5L, "Squat", "Legs", new BigDecimal("7.0"), TrackingType.WEIGHT_REPS);
         RoutineExerciseResponseDto responseDto = new RoutineExerciseResponseDto(25L, exDto, 4, 10);
         
-        when(getWorkoutRoutinesUseCase.execute(1L)).thenReturn(List.of(
+        when(getWorkoutRoutinesUseCase.execute(eq(1L), any())).thenReturn(new org.springframework.data.domain.PageImpl<>(List.of(
                 new RoutineResponseDto(10L, 1L, "Full Body A", List.of(responseDto))
-        ));
+        )));
 
         mockMvc.perform(get("/api/v1/routines"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$[0].name").value("Full Body A"))
-                .andExpect(jsonPath("$[0].exercises").isArray())
-                .andExpect(jsonPath("$[0].exercises[0].id").value(25));
+                .andExpect(jsonPath("$.content[0].name").value("Full Body A"))
+                .andExpect(jsonPath("$.content[0].exercises").isArray())
+                .andExpect(jsonPath("$.content[0].exercises[0].id").value(25));
     }
 
     @Test

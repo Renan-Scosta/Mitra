@@ -9,6 +9,9 @@ import org.springframework.stereotype.Service;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+
 @Service
 public class GetBodyMeasurementsUseCaseImpl implements GetBodyMeasurementsUseCase {
 
@@ -19,10 +22,9 @@ public class GetBodyMeasurementsUseCaseImpl implements GetBodyMeasurementsUseCas
     }
 
     @Override
-    public List<BodyMeasurementResponseDto> execute(Long userId) {
-        return bodyMeasurementRepositoryPort.findAllByUserId(userId).stream()
-                .map(this::toDto)
-                .collect(Collectors.toList());
+    public Page<BodyMeasurementResponseDto> execute(Long userId, Pageable pageable) {
+        return bodyMeasurementRepositoryPort.findAllByUserId(userId, pageable)
+                .map(this::toDto);
     }
 
     private BodyMeasurementResponseDto toDto(BodyMeasurement bm) {

@@ -19,6 +19,9 @@ import org.springframework.web.bind.annotation.*;
 import java.net.URI;
 import java.util.List;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+
 @Tag(name = "Workout Routines", description = "Endpoints for managing workout routines and adding exercises")
 @RestController
 @RequestMapping("/api/v1/routines")
@@ -50,8 +53,10 @@ public class RoutineController {
     @Operation(summary = "Get my routines", description = "Retrieves all workout routines belonging to the authenticated user")
     @ApiResponse(responseCode = "200", description = "Routines retrieved successfully")
     @GetMapping
-    public ResponseEntity<List<RoutineResponseDto>> getMyRoutines(@AuthenticationPrincipal User currentUser) {
-        List<RoutineResponseDto> routines = getWorkoutRoutinesUseCase.execute(currentUser.getId());
+    public ResponseEntity<Page<RoutineResponseDto>> getMyRoutines(
+            @AuthenticationPrincipal User currentUser,
+            Pageable pageable) {
+        Page<RoutineResponseDto> routines = getWorkoutRoutinesUseCase.execute(currentUser.getId(), pageable);
         return ResponseEntity.ok(routines);
     }
 

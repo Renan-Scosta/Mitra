@@ -38,13 +38,14 @@ class GetBodyMeasurementsUseCaseImplTest {
                 .recordDate(LocalDate.of(2026, 4, 16))
                 .build();
 
-        when(bodyMeasurementRepositoryPort.findAllByUserId(1L)).thenReturn(List.of(bm));
+        when(bodyMeasurementRepositoryPort.findAllByUserId(eq(1L), any(org.springframework.data.domain.Pageable.class)))
+                .thenReturn(new org.springframework.data.domain.PageImpl<>(List.of(bm)));
 
-        List<BodyMeasurementResponseDto> result = useCase.execute(1L);
+        var result = useCase.execute(1L, org.springframework.data.domain.PageRequest.of(0, 10));
 
-        assertEquals(1, result.size());
-        assertEquals(0, new BigDecimal("64.00").compareTo(result.get(0).leanMassKg()));
-        assertEquals(0, new BigDecimal("16.00").compareTo(result.get(0).fatMassKg()));
+        assertEquals(1, result.getTotalElements());
+        assertEquals(0, new BigDecimal("64.00").compareTo(result.getContent().get(0).leanMassKg()));
+        assertEquals(0, new BigDecimal("16.00").compareTo(result.getContent().get(0).fatMassKg()));
     }
 
     @Test
@@ -55,20 +56,22 @@ class GetBodyMeasurementsUseCaseImplTest {
                 .recordDate(LocalDate.of(2026, 4, 10))
                 .build();
 
-        when(bodyMeasurementRepositoryPort.findAllByUserId(1L)).thenReturn(List.of(bm));
+        when(bodyMeasurementRepositoryPort.findAllByUserId(eq(1L), any(org.springframework.data.domain.Pageable.class)))
+                .thenReturn(new org.springframework.data.domain.PageImpl<>(List.of(bm)));
 
-        List<BodyMeasurementResponseDto> result = useCase.execute(1L);
+        var result = useCase.execute(1L, org.springframework.data.domain.PageRequest.of(0, 10));
 
-        assertEquals(1, result.size());
-        assertNull(result.get(0).leanMassKg());
-        assertNull(result.get(0).fatMassKg());
+        assertEquals(1, result.getTotalElements());
+        assertNull(result.getContent().get(0).leanMassKg());
+        assertNull(result.getContent().get(0).fatMassKg());
     }
 
     @Test
     void shouldReturnEmptyListWhenNoMeasurements() {
-        when(bodyMeasurementRepositoryPort.findAllByUserId(99L)).thenReturn(List.of());
+        when(bodyMeasurementRepositoryPort.findAllByUserId(eq(99L), any(org.springframework.data.domain.Pageable.class)))
+                .thenReturn(org.springframework.data.domain.Page.empty());
 
-        List<BodyMeasurementResponseDto> result = useCase.execute(99L);
+        var result = useCase.execute(99L, org.springframework.data.domain.PageRequest.of(0, 10));
 
         assertTrue(result.isEmpty());
     }

@@ -5,11 +5,11 @@ import com.mitra.domain.model.BodyMeasurement;
 import com.mitra.infrastructure.persistence.mapper.BodyMeasurementMapper;
 import com.mitra.infrastructure.persistence.repository.BodyMeasurementJpaRepository;
 import com.mitra.infrastructure.persistence.repository.UserJpaRepository;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Repository;
 
-import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 @Repository
 public class BodyMeasurementRepositoryAdapter implements BodyMeasurementRepositoryPort {
@@ -31,10 +31,9 @@ public class BodyMeasurementRepositoryAdapter implements BodyMeasurementReposito
     }
 
     @Override
-    public List<BodyMeasurement> findAllByUserId(Long userId) {
-        return jpaRepository.findByUserIdOrderByRecordDateDesc(userId).stream()
-                .map(BodyMeasurementMapper::toDomain)
-                .collect(Collectors.toList());
+    public Page<BodyMeasurement> findAllByUserId(Long userId, Pageable pageable) {
+        return jpaRepository.findByUserIdOrderByRecordDateDesc(userId, pageable)
+                .map(BodyMeasurementMapper::toDomain);
     }
 
     @Override

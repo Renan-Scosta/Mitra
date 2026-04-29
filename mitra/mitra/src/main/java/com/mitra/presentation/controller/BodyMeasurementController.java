@@ -16,6 +16,9 @@ import org.springframework.web.bind.annotation.*;
 import java.net.URI;
 import java.util.List;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+
 @Tag(name = "Body Measurements", description = "Endpoints for tracking weight and body composition over time")
 @RestController
 @RequestMapping("/api/v1/measurements")
@@ -43,8 +46,10 @@ public class BodyMeasurementController {
     @Operation(summary = "Get my measurement history", description = "Retrieves all body measurements for the authenticated user, ordered by most recent")
     @ApiResponse(responseCode = "200", description = "Measurements retrieved successfully")
     @GetMapping
-    public ResponseEntity<List<BodyMeasurementResponseDto>> getMyMeasurements(@AuthenticationPrincipal User currentUser) {
-        List<BodyMeasurementResponseDto> measurements = getBodyMeasurementsUseCase.execute(currentUser.getId());
+    public ResponseEntity<Page<BodyMeasurementResponseDto>> getMyMeasurements(
+            @AuthenticationPrincipal User currentUser,
+            Pageable pageable) {
+        Page<BodyMeasurementResponseDto> measurements = getBodyMeasurementsUseCase.execute(currentUser.getId(), pageable);
         return ResponseEntity.ok(measurements);
     }
 }

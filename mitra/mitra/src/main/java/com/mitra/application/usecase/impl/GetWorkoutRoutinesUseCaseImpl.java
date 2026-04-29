@@ -13,6 +13,9 @@ import com.mitra.presentation.dto.response.ExerciseResponseDto;
 import com.mitra.presentation.dto.response.RoutineExerciseResponseDto;
 import java.util.ArrayList;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+
 @Service
 public class GetWorkoutRoutinesUseCaseImpl implements GetWorkoutRoutinesUseCase {
 
@@ -24,8 +27,8 @@ public class GetWorkoutRoutinesUseCaseImpl implements GetWorkoutRoutinesUseCase 
 
     @Override
     @Transactional(readOnly = true)
-    public List<RoutineResponseDto> execute(Long userId) {
-        return workoutRoutineRepositoryPort.findByUserId(userId).stream()
+    public Page<RoutineResponseDto> execute(Long userId, Pageable pageable) {
+        return workoutRoutineRepositoryPort.findByUserId(userId, pageable)
                 .map(routine -> {
                     List<RoutineExerciseResponseDto> exerciseDtos = new ArrayList<>();
                     if (routine.getRoutineExercises() != null) {
@@ -51,6 +54,5 @@ public class GetWorkoutRoutinesUseCaseImpl implements GetWorkoutRoutinesUseCase 
                             routine.getName(),
                             exerciseDtos
                     );
-                })
-                .collect(Collectors.toList());    }
+                });    }
 }

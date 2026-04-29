@@ -81,12 +81,12 @@ class BodyMeasurementControllerTest {
                         new BigDecimal("66.83"), new BigDecimal("15.68"), LocalDate.of(2026, 4, 16))
         );
 
-        when(getBodyMeasurementsUseCase.execute(1L)).thenReturn(measurements);
+        when(getBodyMeasurementsUseCase.execute(eq(1L), any())).thenReturn(new org.springframework.data.domain.PageImpl<>(measurements));
 
         mockMvc.perform(get("/api/v1/measurements"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$[0].weightKg").value(82.5))
-                .andExpect(jsonPath("$[0].leanMassKg").value(66.83));
+                .andExpect(jsonPath("$.content[0].weightKg").value(82.5))
+                .andExpect(jsonPath("$.content[0].leanMassKg").value(66.83));
     }
 
     @Test
