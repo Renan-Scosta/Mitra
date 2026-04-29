@@ -2,14 +2,14 @@
 
 > **Documento vivo.** Este arquivo é o onboarding doc da equipe (humanos + agentes de IA).
 > Deve ser lido integralmente antes de qualquer interação com o projeto.
-> **Última atualização**: 2026-04-16
+> **Última atualização**: 2026-04-29
 
 ---
 
 ## 1. Visão Geral
 
 **Mitra** é uma API REST de acompanhamento fitness construída sobre **Spring Boot 4** com arquitetura **Hexagonal (Ports & Adapters)**.
-O sistema permite registrar usuários, montar rotinas de treino, executar sessões, registrar séries, e calcular métricas fisiológicas como BMR (Mifflin-St Jeor).
+O sistema permite registrar usuários, gerenciar perfis, montar rotinas de treino, executar sessões, registrar séries, calcular métricas fisiológicas (BMR, calorias via MET), consultar personal records, e visualizar dashboards de progresso.
 
 ### Core Values
 
@@ -32,6 +32,7 @@ O sistema permite registrar usuários, montar rotinas de treino, executar sessõ
 | **Framework** | Spring Boot | 4.0.5 |
 | **Build Tool** | Maven (wrapper) | 3.x |
 | **ORM** | Spring Data JPA / Hibernate | via Spring Boot BOM |
+| **Migrations** | Flyway (spring-boot-starter-flyway) | via Spring Boot BOM |
 | **Banco Produção** | PostgreSQL | 16+ |
 | **Banco Testes** | H2 (in-memory) | via Spring Boot BOM |
 | **Segurança** | Spring Security + JWT (auth0/java-jwt 4.4.0) | — |
@@ -101,12 +102,21 @@ Mitra-App/
         │   │   │   │   ├── BodyMeasurementRepositoryPort.java
         │   │   │   │   ├── GoogleTokenVerifierPort.java
         │   │   │   │   └── PasswordEncoderPort.java
-        │   │   │   └── usecase/               ← Interfaces + implementations
+        │   │   │   ├── exception/
+        │   │   │   │   └── ResourceNotFoundException.java
+        │   │   │   └── usecase/               ← Interfaces + implementations (23 use cases)
         │   │   │       ├── RegisterUserUseCase.java
         │   │   │       ├── GoogleLoginUseCase.java
         │   │   │       ├── CalculateBmrUseCase.java
+        │   │   │       ├── UpdateUserProfileUseCase.java
+        │   │   │       ├── UpdateUserPasswordUseCase.java
+        │   │   │       ├── DeleteUserAccountUseCase.java
+        │   │   │       ├── GetUserDashboardUseCase.java
+        │   │   │       ├── GetUserVolumeSummaryUseCase.java
         │   │   │       ├── CreateExerciseUseCase.java
         │   │   │       ├── GetAllExercisesUseCase.java
+        │   │   │       ├── GetExerciseHistoryUseCase.java
+        │   │   │       ├── GetPersonalRecordsUseCase.java
         │   │   │       ├── CreateWorkoutRoutineUseCase.java
         │   │   │       ├── GetWorkoutRoutinesUseCase.java
         │   │   │       ├── AddRoutineExerciseUseCase.java
@@ -118,16 +128,16 @@ Mitra-App/
         │   │   │       ├── CalculateSessionCaloriesUseCase.java
         │   │   │       ├── CreateBodyMeasurementUseCase.java
         │   │   │       ├── GetBodyMeasurementsUseCase.java
-        │   │   │       └── impl/              ← Implementações concretas
+        │   │   │       └── impl/              ← 22 implementações concretas
         │   │   │
         │   │   ├── infrastructure/            ← CAMADA INFRASTRUCTURE (frameworks)
         │   │   │   ├── config/
         │   │   │   │   ├── SecurityConfig.java       @Profile("!test")
         │   │   │   │   ├── SwaggerConfig.java
         │   │   │   │   ├── UseCaseConfig.java        ← Wiring manual dos beans
-        │   │   │   │   └── DatabaseSeeder.java       @Profile("!test") — cria dev@mitra.com
+        │   │   │   │   └── DatabaseSeeder.java       @Profile("!test")
         │   │   │   ├── security/
-        │   │   │   │   ├── TokenService.java         ← JWT HMAC256, 24h expiration
+        │   │   │   │   ├── TokenService.java         ← JWT HMAC256
         │   │   │   │   ├── SecurityFilter.java       ← OncePerRequestFilter
         │   │   │   │   └── PasswordEncoderAdapter.java
         │   │   │   └── persistence/
@@ -139,14 +149,14 @@ Mitra-App/
         │   │   └── presentation/              ← CAMADA PRESENTATION (HTTP)
         │   │       ├── controller/
         │   │       │   ├── AuthController.java                POST /login, POST /google
-        │   │       │   ├── UserController.java                POST /api/v1/users, GET /me/bmr
-        │   │       │   ├── ExerciseController.java            CRUD exercises (@PreAuthorize ADMIN)
+        │   │       │   ├── UserController.java                users, profile, dashboard, volume
+        │   │       │   ├── ExerciseController.java            CRUD exercises + history + PRs
         │   │       │   ├── RoutineController.java             CRUD routines (tenant-isolated)
         │   │       │   ├── WorkoutSessionController.java      sessions lifecycle + history
         │   │       │   └── BodyMeasurementController.java     POST+GET /api/v1/measurements
         │   │       ├── dto/
-        │   │       │   ├── request/   (8 records — all with Bean Validation)
-        │   │       │   └── response/  (9 records)
+        │   │       │   ├── request/   (11 records — all with Bean Validation)
+        │   │       │   └── response/  (15 records)
         │   │       └── exception/
         │   │           └── GlobalExceptionHandler.java
         │   │
@@ -159,12 +169,13 @@ Mitra-App/
                 ├── MitraApplicationTests.java             ← Context loads
                 ├── domain/
                 │   ├── model/UserTest, WorkoutSessionTest, BodyMeasurementTest
-                │   └── service/BmrCalculatorTest.java
+                │   └── service/BmrCalculatorTest.java, CalorieCalculatorTest.java
                 ├── application/usecase/
                 │   ├── CalculateBmrUseCaseTest.java
-                │   └── impl/  (10 use case tests)
+                │   └── impl/  (20 use case tests)
                 ├── infrastructure/
                 │   ├── config/TestSecurityConfig.java
+                │   ├── security/GoogleTokenVerifierAdapterTest.java
                 │   └── persistence/adapter/  (7 adapter tests @DataJpaTest)
                 └── presentation/controller/  (6 controller tests @WebMvcTest)
 ```
@@ -257,8 +268,15 @@ Adapta-se ao `TrackingType`: `weightKg` (null para REPS_ONLY/TIME_ONLY), `reps` 
 |---|---|---|---|
 | `RegisterUserUseCase` | `CreateUserRequestDto` | `Long` (userId) | Encoda senha via `PasswordEncoderPort`, salva `BodyMeasurement` inicial |
 | `CalculateBmrUseCase` | `Long` (userId) | `double` (kcal/day) | Busca user + último peso, delega para `BmrCalculator` |
+| `UpdateUserProfileUseCase` | `Long userId, UpdateUserProfileRequestDto` | `UserProfileResponseDto` | Atualiza nome, birthDate, gender, height |
+| `UpdateUserPasswordUseCase` | `Long userId, UpdateUserPasswordRequestDto` | `void` | Valida senha atual, bloqueia contas OAuth2 |
+| `DeleteUserAccountUseCase` | `Long userId` | `void` | Deleta conta permanentemente via `UserRepositoryPort.deleteById` |
+| `GetUserDashboardUseCase` | `Long userId` | `DashboardResponseDto` | Streak, workouts/week, calorias/week, último treino |
+| `GetUserVolumeSummaryUseCase` | `Long userId, LocalDateTime start, LocalDateTime end` | `List<VolumeSummaryResponseDto>` | Volume (kg×reps) agrupado por grupo muscular |
 | `CreateExerciseUseCase` | `CreateExerciseRequestDto` | `Long` | Exige `ROLE_ADMIN` |
 | `GetAllExercisesUseCase` | `Pageable` | `Page<ExerciseResponseDto>` | Paginado |
+| `GetExerciseHistoryUseCase` | `Long userId, Long exerciseId` | `ExerciseHistoryResponseDto` | Histórico cronológico de séries do exercício 🔒 |
+| `GetPersonalRecordsUseCase` | `Long userId, Long exerciseId` | `PersonalRecordResponseDto` | PRs: maior peso, reps, volume, duração 🔒 |
 | `CreateWorkoutRoutineUseCase` | `Long userId, CreateRoutineRequestDto` | `Long` | userId vem do `@AuthenticationPrincipal` |
 | `GetWorkoutRoutinesUseCase` | `Long userId` | `List<RoutineResponseDto>` | Inclui exercícios aninhados, `@Transactional(readOnly=true)` |
 | `AddRoutineExerciseUseCase` | `Long userId, Long routineId, AddRoutineExerciseRequestDto` | `RoutineExerciseResponseDto` | 🔒 **Ownership**: valida `routine.userId == userId`, throws `SecurityException` |
@@ -266,17 +284,19 @@ Adapta-se ao `TrackingType`: `weightKg` (null para REPS_ONLY/TIME_ONLY), `reps` 
 | `LogSetRecordUseCase` | `Long userId, Long sessionId, LogSetRequestDto` | `SetRecordResponseDto` | 🔒 **Ownership**: valida `session.userId == userId`, throws `SecurityException` |
 | `FinishWorkoutSessionUseCase` | `Long userId, Long sessionId` | `SessionSummaryResponseDto` | 🔒 **Ownership**: valida `session.userId == userId`, throws `SecurityException` |
 | `GetWorkoutSessionUseCase` | `Long userId, Long sessionId` | `WorkoutSessionResponseDto` | 🔒 **Ownership**: valida `session.userId == userId`, throws `SecurityException` |
-| `GetUserSessionsUseCase` | `Long userId` | `List<WorkoutSessionResponseDto>` | Histórico de sessões do user autenticado |
+| `GetUserSessionsUseCase` | `Long userId, LocalDate start, LocalDate end, Pageable` | `Page<WorkoutSessionResponseDto>` | Paginado com filtro de data opcional |
 | `CalculateSessionCaloriesUseCase` | `Long userId, Long sessionId` | `SessionCaloriesResponseDto` | 🔒 **Ownership**: valida, requer `BodyMeasurement` para retornar valor |
 | `CreateBodyMeasurementUseCase` | `Long userId, CreateBodyMeasurementRequestDto` | `BodyMeasurementResponseDto` | Calcula `leanMassKg` e `fatMassKg` derivados |
 | `GetBodyMeasurementsUseCase` | `Long userId` | `List<BodyMeasurementResponseDto>` | Histórico de medições do user autenticado |
 
 #### UseCases Puros: Modelos de Inteligência e Cálculos
 - `GoogleLoginUseCase`: Valida idToken (via Port), registra/encontra usuário e emite JWT.
-- `CalculateBmrUseCase`: Usa fórmula Mifflin-St Jeor no `CalorieCalculator`.
-- `CalculateSessionCaloriesUseCase`: Calcula gasto calórico de uma sessão inteira.
-- `GetExerciseHistoryUseCase` [FASE 7]: Busca histórico cronológico de séries do usuário.
-- `GetPersonalRecordsUseCase` [FASE 7]: Calcula PRs (maior peso, reps, volume, duração).
+- `CalculateBmrUseCase`: Usa fórmula Mifflin-St Jeor no `BmrCalculator`.
+- `CalculateSessionCaloriesUseCase`: Calcula gasto calórico de uma sessão inteira via MET.
+- `GetExerciseHistoryUseCase`: Busca histórico cronológico de séries do usuário para um exercício.
+- `GetPersonalRecordsUseCase`: Calcula PRs (maior peso, reps, volume, duração).
+- `GetUserDashboardUseCase`: Agrega streak, treinos/semana, calorias/semana e último treino.
+- `GetUserVolumeSummaryUseCase`: Agrega volume total por grupo muscular em um período.
 
 ---
 
@@ -293,13 +313,19 @@ Adapta-se ao `TrackingType`: `weightKg` (null para REPS_ONLY/TIME_ONLY), `reps` 
 |---|---|---|---|
 | POST | `/` | ❌ público | Registra novo usuário (valida password == confirmPassword) |
 | GET | `/me/bmr` | ✅ Bearer | Calcula BMR do usuário logado |
+| PUT | `/me` | ✅ Bearer | Atualiza perfil (name, birthDate, gender, heightCm) |
+| PUT | `/me/password` | ✅ Bearer | Altera senha (exige senha atual, bloqueia contas OAuth2) |
+| DELETE | `/me` | ✅ Bearer | Deleta conta permanentemente |
+| GET | `/me/dashboard` | ✅ Bearer | Dashboard: streak, treinos/semana, calorias, último treino |
+| GET | `/me/volume-summary` | ✅ Bearer | Volume por grupo muscular (`?startDate=&endDate=`, default últimos 7 dias) |
 
-### Exercises (Catálogo, Histórico e PRs)
-*   **Controller**: `ExerciseController`
-*   `POST /api/v1/exercises` - Registra exercício (Global, requer `ADMIN`)
-*   `GET /api/v1/exercises` - Lista catálogo (suporta `Pageable`, default size 20)
-*   `GET /api/v1/exercises/{exerciseId}/history` - Retorna histórico cronológico do exercício _[Tenant Protected]_
-*   `GET /api/v1/exercises/{exerciseId}/records` - Retorna PRs do exercício _[Tenant Protected]_
+### Exercises (Catálogo, Histórico e PRs) — `/api/v1/exercises`
+| Método | Path | Auth | Descrição |
+|---|---|---|---|
+| POST | `/` | ✅ Bearer (`ADMIN`) | Registra exercício no catálogo global |
+| GET | `/` | ✅ Bearer | Lista catálogo (suporta `Pageable`, default size 20) |
+| GET | `/{exerciseId}/history` | ✅ Bearer 🔒 | Histórico cronológico de séries do exercício |
+| GET | `/{exerciseId}/records` | ✅ Bearer 🔒 | Personal Records do exercício |
 
 ### Routines — `/api/v1/routines`
 | Método | Path | Auth | Descrição |
@@ -312,7 +338,7 @@ Adapta-se ao `TrackingType`: `weightKg` (null para REPS_ONLY/TIME_ONLY), `reps` 
 | Método | Path | Auth | Descrição |
 |---|---|---|---|
 | POST | `/` | ✅ Bearer | Inicia sessão de treino |
-| GET | `/` | ✅ Bearer | Lista histórico de sessões do user autenticado |
+| GET | `/` | ✅ Bearer | Lista histórico paginado (`?startDate=&endDate=`, suporta `Pageable`) |
 | POST | `/{sessionId}/sets` | ✅ Bearer 🔒 | Registra uma série (ownership enforced) |
 | POST | `/{sessionId}/finish` | ✅ Bearer 🔒 | Finaliza sessão (ownership enforced) |
 | GET | `/{sessionId}` | ✅ Bearer 🔒 | Detalhes da sessão (ownership enforced) |
@@ -342,9 +368,9 @@ Adapta-se ao `TrackingType`: `weightKg` (null para REPS_ONLY/TIME_ONLY), `reps` 
 - Cada rotina/sessão é criada com o userId do token — um usuário nunca vê dados de outro
 
 ### Ownership Enforcement
-- Endpoints que operam sobre recursos existentes (sessão, rotina) validam ownership **na camada de Use Case**
+- Endpoints que operam sobre recursos existentes (sessão, rotina, exercício) validam ownership **na camada de Use Case**
 - Se `resource.userId != currentUser.id` → `SecurityException` → **403 Forbidden**
-- Endpoints protegidos: `GET/POST /{sessionId}/*`, `POST /{routineId}/exercises`
+- Endpoints protegidos: `GET/POST /{sessionId}/*`, `POST /{routineId}/exercises`, `GET /exercises/{id}/history`, `GET /exercises/{id}/records`
 - O `GlobalExceptionHandler` mapeia `SecurityException` → 403
 
 ### Credenciais de Dev
@@ -364,12 +390,12 @@ O `DatabaseSeeder` (ativo apenas fora do perfil `test`) cria automaticamente:
 | Tipo | Quant | Anotação | Banco | O que testa |
 |---|---|---|---|---|
 | Unit (Domain) | 21 | Nenhuma | Nenhum | `BmrCalculator`, `CalorieCalculator`, `User`, `WorkoutSession`, `BodyMeasurement` |
-| Unit (UseCase) | 35 | `@ExtendWith(MockitoExtension)` | Nenhum | Todos os 16 use cases + ownership violations |
+| Unit (UseCase) | ~55 | `@ExtendWith(MockitoExtension)` | Nenhum | Todos os 23 use cases + ownership violations |
 | Unit (Security) | 2 | Nenhuma | Nenhum | `GoogleTokenVerifierAdapter` |
-| Integration (Persistence) | 16 | `@DataJpaTest` | H2 | Todos os 8 Repository Adapters |
-| WebMvc (Controller) | 49 | `@WebMvcTest` | Nenhum | Auth, User, Exercise, Routine, Session, BodyMeasurement controllers |
+| Integration (Persistence) | 16 | `@DataJpaTest` | H2 | Todos os 7 Repository Adapters |
+| WebMvc (Controller) | ~49 | `@WebMvcTest` | Nenhum | Auth, User, Exercise, Routine, Session, BodyMeasurement controllers |
 | Context | 1 | `@SpringBootTest` | H2 | Verifica que o contexto Spring sobe |
-| **Total** | **124** | | | |
+| **Total** | **~144** | | |
 
 ### Configuração de teste
 - Perfil `test` ativo via `@ActiveProfiles("test")`
@@ -413,6 +439,10 @@ SecurityContextHolder.getContext().setAuthentication(auth);
 **Causa**: PowerShell não suporta `&&` como operador de encadeamento em todas as versões.
 **Solução**: Separar em dois comandos: `git add -A` seguido de `git commit -m "..."`.
 
+### ❌ Flyway não roda automaticamente no Spring Boot 4 com `flyway-core`
+**Causa**: No Spring Boot 4, adicionar apenas `flyway-core` ao classpath **não** dispara auto-configuração. O pacote mudou para `org.springframework.boot.flyway.autoconfigure`.
+**Solução**: Usar `spring-boot-starter-flyway` ao invés de `flyway-core`. Para PostgreSQL, adicionar também `flyway-database-postgresql`. Migrations ficam em `src/main/resources/db/migration/`.
+
 ---
 
 ## 12. Design Patterns
@@ -449,7 +479,7 @@ SecurityContextHolder.getContext().setAuthentication(auth);
 ## 14. Checklist Pós-Implementação
 
 ```
-[ ] 1. Todos os 110+ testes passando
+[ ] 1. Todos os 140+ testes passando
 [ ] 2. Swagger UI acessível em http://localhost:8080/swagger-ui/index.html
 [ ] 3. Login funciona com dev@mitra.com / 123456
 [ ] 4. Bearer Token funciona no Swagger (botão Authorize)
