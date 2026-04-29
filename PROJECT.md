@@ -278,7 +278,7 @@ Adapta-se ao `TrackingType`: `weightKg` (null para REPS_ONLY/TIME_ONLY), `reps` 
 | `GetExerciseHistoryUseCase` | `Long userId, Long exerciseId` | `ExerciseHistoryResponseDto` | Histórico cronológico de séries do exercício 🔒 |
 | `GetPersonalRecordsUseCase` | `Long userId, Long exerciseId` | `PersonalRecordResponseDto` | PRs: maior peso, reps, volume, duração 🔒 |
 | `CreateWorkoutRoutineUseCase` | `Long userId, CreateRoutineRequestDto` | `Long` | userId vem do `@AuthenticationPrincipal` |
-| `GetWorkoutRoutinesUseCase` | `Long userId` | `List<RoutineResponseDto>` | Inclui exercícios aninhados, `@Transactional(readOnly=true)` |
+| `GetWorkoutRoutinesUseCase` | `Long userId, Pageable pageable` | `Page<RoutineResponseDto>` | Inclui exercícios aninhados, paginado, `@Transactional(readOnly=true)` |
 | `AddRoutineExerciseUseCase` | `Long userId, Long routineId, AddRoutineExerciseRequestDto` | `RoutineExerciseResponseDto` | 🔒 **Ownership**: valida `routine.userId == userId`, throws `SecurityException` |
 | `StartWorkoutSessionUseCase` | `Long userId, StartSessionRequestDto` | `Long` | userId vem do `@AuthenticationPrincipal` |
 | `LogSetRecordUseCase` | `Long userId, Long sessionId, LogSetRequestDto` | `SetRecordResponseDto` | 🔒 **Ownership**: valida `session.userId == userId`, throws `SecurityException` |
@@ -287,7 +287,7 @@ Adapta-se ao `TrackingType`: `weightKg` (null para REPS_ONLY/TIME_ONLY), `reps` 
 | `GetUserSessionsUseCase` | `Long userId, LocalDate start, LocalDate end, Pageable` | `Page<WorkoutSessionResponseDto>` | Paginado com filtro de data opcional |
 | `CalculateSessionCaloriesUseCase` | `Long userId, Long sessionId` | `SessionCaloriesResponseDto` | 🔒 **Ownership**: valida, requer `BodyMeasurement` para retornar valor |
 | `CreateBodyMeasurementUseCase` | `Long userId, CreateBodyMeasurementRequestDto` | `BodyMeasurementResponseDto` | Calcula `leanMassKg` e `fatMassKg` derivados |
-| `GetBodyMeasurementsUseCase` | `Long userId` | `List<BodyMeasurementResponseDto>` | Histórico de medições do user autenticado |
+| `GetBodyMeasurementsUseCase` | `Long userId, Pageable pageable` | `Page<BodyMeasurementResponseDto>` | Histórico paginado de medições do user autenticado |
 
 #### UseCases Puros: Modelos de Inteligência e Cálculos
 - `GoogleLoginUseCase`: Valida idToken (via Port), registra/encontra usuário e emite JWT.
@@ -331,7 +331,7 @@ Adapta-se ao `TrackingType`: `weightKg` (null para REPS_ONLY/TIME_ONLY), `reps` 
 | Método | Path | Auth | Descrição |
 |---|---|---|---|
 | POST | `/` | ✅ Bearer | Cria rotina para o user autenticado |
-| GET | `/` | ✅ Bearer | Lista rotinas do user autenticado |
+| GET | `/` | ✅ Bearer | Lista rotinas do user autenticado (suporta `Pageable`) |
 | POST | `/{routineId}/exercises` | ✅ Bearer 🔒 | Adiciona exercício à rotina (ownership enforced) |
 
 ### Sessions — `/api/v1/sessions`
@@ -348,7 +348,7 @@ Adapta-se ao `TrackingType`: `weightKg` (null para REPS_ONLY/TIME_ONLY), `reps` 
 | Método | Path | Auth | Descrição |
 |---|---|---|---|
 | POST | `/` | ✅ Bearer | Registra nova medição corporal |
-| GET | `/` | ✅ Bearer | Lista histórico de medições do user autenticado |
+| GET | `/` | ✅ Bearer | Lista histórico paginado de medições do user autenticado (suporta `Pageable`) |
 
 ---
 
@@ -390,12 +390,12 @@ O `DatabaseSeeder` (ativo apenas fora do perfil `test`) cria automaticamente:
 | Tipo | Quant | Anotação | Banco | O que testa |
 |---|---|---|---|---|
 | Unit (Domain) | 21 | Nenhuma | Nenhum | `BmrCalculator`, `CalorieCalculator`, `User`, `WorkoutSession`, `BodyMeasurement` |
-| Unit (UseCase) | ~55 | `@ExtendWith(MockitoExtension)` | Nenhum | Todos os 23 use cases + ownership violations |
+| Unit (UseCase) | ~57 | `@ExtendWith(MockitoExtension)` | Nenhum | Todos os 23 use cases + ownership violations |
 | Unit (Security) | 2 | Nenhuma | Nenhum | `GoogleTokenVerifierAdapter` |
 | Integration (Persistence) | 16 | `@DataJpaTest` | H2 | Todos os 7 Repository Adapters |
 | WebMvc (Controller) | ~49 | `@WebMvcTest` | Nenhum | Auth, User, Exercise, Routine, Session, BodyMeasurement controllers |
 | Context | 1 | `@SpringBootTest` | H2 | Verifica que o contexto Spring sobe |
-| **Total** | **~144** | | |
+| **Total** | **~146** | | |
 
 ### Configuração de teste
 - Perfil `test` ativo via `@ActiveProfiles("test")`
