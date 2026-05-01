@@ -7,6 +7,7 @@ import com.mitra.domain.model.Exercise;
 import com.mitra.domain.model.SetRecord;
 import com.mitra.application.exception.ResourceNotFoundException;
 import com.mitra.presentation.dto.response.PersonalRecordResponseDto;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
@@ -14,6 +15,7 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Objects;
 
+@Slf4j
 @Service
 public class GetPersonalRecordsUseCaseImpl implements GetPersonalRecordsUseCase {
 
@@ -29,6 +31,7 @@ public class GetPersonalRecordsUseCaseImpl implements GetPersonalRecordsUseCase 
 
     @Override
     public PersonalRecordResponseDto execute(Long userId, Long exerciseId) {
+        log.debug("Fetching PRs userId={} exerciseId={}", userId, exerciseId);
         Exercise exercise = exerciseRepositoryPort.findById(exerciseId)
                 .orElseThrow(() -> new IllegalArgumentException("Exercise not found"));
 

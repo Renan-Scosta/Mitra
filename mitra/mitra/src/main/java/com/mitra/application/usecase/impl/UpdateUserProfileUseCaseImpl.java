@@ -6,9 +6,11 @@ import com.mitra.application.usecase.UpdateUserProfileUseCase;
 import com.mitra.domain.model.User;
 import com.mitra.presentation.dto.request.UpdateUserProfileRequestDto;
 import com.mitra.presentation.dto.response.UserProfileResponseDto;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+@Slf4j
 @Service
 @Transactional
 public class UpdateUserProfileUseCaseImpl implements UpdateUserProfileUseCase {
@@ -36,6 +38,7 @@ public class UpdateUserProfileUseCaseImpl implements UpdateUserProfileUseCase {
                 .build();
 
         User savedUser = userRepositoryPort.save(updatedUser);
+        log.info("Updated profile for userId={}", userId);
 
         return new UserProfileResponseDto(
                 savedUser.getId(),

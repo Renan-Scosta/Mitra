@@ -5,6 +5,7 @@ import com.mitra.application.port.out.UserRepositoryPort;
 import com.mitra.domain.model.BodyMeasurement;
 import com.mitra.domain.model.User;
 import com.mitra.domain.service.BmrCalculator;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 /**
@@ -13,6 +14,7 @@ import org.springframework.stereotype.Service;
  * <p>Orchestrates the retrieval of the user profile and their latest body measurement,
  * then delegates the calculation to the {@link BmrCalculator} domain service.
  */
+@Slf4j
 @Service
 public class CalculateBmrUseCase {
 
@@ -35,6 +37,7 @@ public class CalculateBmrUseCase {
      * @throws IllegalArgumentException if the user or a body measurement is not found
      */
     public double execute(Long userId) {
+        log.debug("Calculating BMR for userId={}", userId);
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new IllegalArgumentException("User not found: " + userId));
 
@@ -42,6 +45,8 @@ public class CalculateBmrUseCase {
                 .orElseThrow(() -> new IllegalArgumentException(
                         "No body measurement found for user: " + userId));
 
-        return bmrCalculator.calculate(user, latestMeasurement.getWeightKg());
+        double bmr = bmrCalculator.calculate(user, latestMeasurement.getWeightKg());
+        log.debug("BMR calculated for userId={}: {} kcal/day", userId, bmr);
+        return bmr;
     }
 }

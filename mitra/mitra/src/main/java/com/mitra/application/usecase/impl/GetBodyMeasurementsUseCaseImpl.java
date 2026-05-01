@@ -4,6 +4,7 @@ import com.mitra.application.port.out.BodyMeasurementRepositoryPort;
 import com.mitra.application.usecase.GetBodyMeasurementsUseCase;
 import com.mitra.domain.model.BodyMeasurement;
 import com.mitra.presentation.dto.response.BodyMeasurementResponseDto;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -12,6 +13,7 @@ import java.util.stream.Collectors;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
+@Slf4j
 @Service
 public class GetBodyMeasurementsUseCaseImpl implements GetBodyMeasurementsUseCase {
 
@@ -23,6 +25,7 @@ public class GetBodyMeasurementsUseCaseImpl implements GetBodyMeasurementsUseCas
 
     @Override
     public Page<BodyMeasurementResponseDto> execute(Long userId, Pageable pageable) {
+        log.debug("Listing measurements for userId={}", userId);
         return bodyMeasurementRepositoryPort.findAllByUserId(userId, pageable)
                 .map(this::toDto);
     }

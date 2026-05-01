@@ -3,9 +3,11 @@ package com.mitra.application.usecase.impl;
 import com.mitra.application.exception.ResourceNotFoundException;
 import com.mitra.application.port.out.UserRepositoryPort;
 import com.mitra.application.usecase.DeleteUserAccountUseCase;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+@Slf4j
 @Service
 @Transactional
 public class DeleteUserAccountUseCaseImpl implements DeleteUserAccountUseCase {
@@ -22,5 +24,6 @@ public class DeleteUserAccountUseCaseImpl implements DeleteUserAccountUseCase {
                 .orElseThrow(() -> new ResourceNotFoundException("User not found: " + userId));
 
         userRepositoryPort.deleteById(userId);
+        log.info("Deleted user account userId={}", userId);
     }
 }

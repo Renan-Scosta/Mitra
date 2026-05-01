@@ -8,6 +8,7 @@ import com.mitra.domain.model.Exercise;
 import com.mitra.domain.model.SetRecord;
 import com.mitra.domain.model.WorkoutSession;
 import com.mitra.presentation.dto.response.ExerciseHistoryResponseDto;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -17,6 +18,7 @@ import java.util.Map;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+@Slf4j
 @Service
 public class GetExerciseHistoryUseCaseImpl implements GetExerciseHistoryUseCase {
 
@@ -35,6 +37,7 @@ public class GetExerciseHistoryUseCaseImpl implements GetExerciseHistoryUseCase 
 
     @Override
     public ExerciseHistoryResponseDto execute(Long userId, Long exerciseId) {
+        log.debug("Fetching exercise history userId={} exerciseId={}", userId, exerciseId);
         Exercise exercise = exerciseRepositoryPort.findById(exerciseId)
                 .orElseThrow(() -> new IllegalArgumentException("Exercise not found"));
 

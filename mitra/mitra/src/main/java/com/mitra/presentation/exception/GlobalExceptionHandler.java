@@ -1,6 +1,7 @@
 package com.mitra.presentation.exception;
 
 import com.mitra.application.exception.ResourceNotFoundException;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -12,11 +13,13 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
+@Slf4j
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
     @ExceptionHandler(IllegalArgumentException.class)
     public ResponseEntity<Object> handleIllegalArgumentException(IllegalArgumentException ex) {
+        log.warn("IllegalArgumentException: {}", ex.getMessage());
         Map<String, Object> body = new LinkedHashMap<>();
         body.put("timestamp", LocalDateTime.now());
         body.put("status", HttpStatus.NOT_FOUND.value());
@@ -28,6 +31,7 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(IllegalStateException.class)
     public ResponseEntity<Object> handleIllegalStateException(IllegalStateException ex) {
+        log.warn("IllegalStateException: {}", ex.getMessage());
         Map<String, Object> body = new LinkedHashMap<>();
         body.put("timestamp", LocalDateTime.now());
         body.put("status", HttpStatus.CONFLICT.value());
@@ -39,6 +43,7 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(SecurityException.class)
     public ResponseEntity<Object> handleSecurityException(SecurityException ex) {
+        log.warn("SecurityException: {}", ex.getMessage());
         Map<String, Object> body = new LinkedHashMap<>();
         body.put("timestamp", LocalDateTime.now());
         body.put("status", HttpStatus.FORBIDDEN.value());
@@ -50,6 +55,7 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(ResourceNotFoundException.class)
     public ResponseEntity<Object> handleResourceNotFoundException(ResourceNotFoundException ex) {
+        log.warn("ResourceNotFoundException: {}", ex.getMessage());
         Map<String, Object> body = new LinkedHashMap<>();
         body.put("timestamp", LocalDateTime.now());
         body.put("status", HttpStatus.NOT_FOUND.value());
@@ -65,6 +71,7 @@ public class GlobalExceptionHandler {
                 .map(fe -> fe.getField() + ": " + fe.getDefaultMessage())
                 .toList();
 
+        log.warn("Validation failed: {}", errors);
         Map<String, Object> body = new LinkedHashMap<>();
         body.put("timestamp", LocalDateTime.now());
         body.put("status", HttpStatus.BAD_REQUEST.value());
@@ -74,3 +81,4 @@ public class GlobalExceptionHandler {
         return new ResponseEntity<>(body, HttpStatus.BAD_REQUEST);
     }
 }
+

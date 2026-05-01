@@ -11,11 +11,13 @@ import java.util.stream.Collectors;
 import org.springframework.transaction.annotation.Transactional;
 import com.mitra.presentation.dto.response.ExerciseResponseDto;
 import com.mitra.presentation.dto.response.RoutineExerciseResponseDto;
+import lombok.extern.slf4j.Slf4j;
 import java.util.ArrayList;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
+@Slf4j
 @Service
 public class GetWorkoutRoutinesUseCaseImpl implements GetWorkoutRoutinesUseCase {
 
@@ -28,6 +30,7 @@ public class GetWorkoutRoutinesUseCaseImpl implements GetWorkoutRoutinesUseCase 
     @Override
     @Transactional(readOnly = true)
     public Page<RoutineResponseDto> execute(Long userId, Pageable pageable) {
+        log.debug("Listing routines for userId={}", userId);
         return workoutRoutineRepositoryPort.findByUserId(userId, pageable)
                 .map(routine -> {
                     List<RoutineExerciseResponseDto> exerciseDtos = new ArrayList<>();

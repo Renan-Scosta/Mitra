@@ -8,10 +8,12 @@ import com.mitra.domain.model.WorkoutSession;
 import com.mitra.domain.service.CalorieCalculator;
 import com.mitra.domain.service.CalorieResult;
 import com.mitra.presentation.dto.response.SessionSummaryResponseDto;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.util.Optional;
 
+@Slf4j
 @Service
 public class FinishWorkoutSessionUseCaseImpl implements FinishWorkoutSessionUseCase {
 
@@ -33,6 +35,7 @@ public class FinishWorkoutSessionUseCaseImpl implements FinishWorkoutSessionUseC
                 .orElseThrow(() -> new IllegalArgumentException("Session not found"));
 
         if (!session.getUserId().equals(userId)) {
+            log.warn("Ownership violation: userId={} tried sessionId={}", userId, sessionId);
             throw new SecurityException("You do not own this session");
         }
 
@@ -50,6 +53,7 @@ public class FinishWorkoutSessionUseCaseImpl implements FinishWorkoutSessionUseC
             estimatedCalories = result.totalCalories();
         }
 
+        log.info("Finished session sessionId={} — sets={} duration={}min calories={}", saved.getId(), totalSets, durationMinutes, estimatedCalories);
         return new SessionSummaryResponseDto(saved.getId(), totalSets, durationMinutes, estimatedCalories);
     }
 }

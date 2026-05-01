@@ -4,8 +4,10 @@ import com.mitra.application.port.out.ExerciseRepositoryPort;
 import com.mitra.application.usecase.CreateExerciseUseCase;
 import com.mitra.domain.model.Exercise;
 import com.mitra.presentation.dto.request.CreateExerciseRequestDto;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
+@Slf4j
 @Service
 public class CreateExerciseUseCaseImpl implements CreateExerciseUseCase {
 
@@ -25,6 +27,8 @@ public class CreateExerciseUseCaseImpl implements CreateExerciseUseCase {
                 .build();
                 
         Exercise savedExercise = exerciseRepositoryPort.save(exercise);
+        log.info("Created exercise exerciseId={} name={}", savedExercise.getId(), request.name());
         return savedExercise.getId();
     }
 }
+

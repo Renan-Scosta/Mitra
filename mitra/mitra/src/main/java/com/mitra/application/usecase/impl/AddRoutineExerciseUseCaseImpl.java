@@ -10,8 +10,10 @@ import com.mitra.domain.model.WorkoutRoutine;
 import com.mitra.presentation.dto.request.AddRoutineExerciseRequestDto;
 import com.mitra.presentation.dto.response.ExerciseResponseDto;
 import com.mitra.presentation.dto.response.RoutineExerciseResponseDto;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
+@Slf4j
 @Service
 public class AddRoutineExerciseUseCaseImpl implements AddRoutineExerciseUseCase {
 
@@ -34,6 +36,7 @@ public class AddRoutineExerciseUseCaseImpl implements AddRoutineExerciseUseCase 
                 .orElseThrow(() -> new IllegalArgumentException("Routine not found with id: " + routineId));
 
         if (!routine.getUserId().equals(userId)) {
+            log.warn("Ownership violation: userId={} tried routineId={}", userId, routineId);
             throw new SecurityException("You do not own this routine");
         }
 
@@ -48,6 +51,7 @@ public class AddRoutineExerciseUseCaseImpl implements AddRoutineExerciseUseCase 
                 .build();
 
         RoutineExercise saved = routineExerciseRepositoryPort.save(routineExercise);
+        log.info("Added exercise exerciseId={} to routineId={}", request.exerciseId(), routineId);
 
         ExerciseResponseDto exerciseResponse = new ExerciseResponseDto(
                 exercise.getId(), exercise.getName(), exercise.getMuscleGroup(),

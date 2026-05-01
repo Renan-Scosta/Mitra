@@ -4,8 +4,10 @@ import com.mitra.application.port.out.BodyMeasurementRepositoryPort;
 import com.mitra.application.usecase.CreateBodyMeasurementUseCase;
 import com.mitra.domain.model.BodyMeasurement;
 import com.mitra.presentation.dto.request.CreateBodyMeasurementRequestDto;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
+@Slf4j
 @Service
 public class CreateBodyMeasurementUseCaseImpl implements CreateBodyMeasurementUseCase {
 
@@ -25,6 +27,7 @@ public class CreateBodyMeasurementUseCaseImpl implements CreateBodyMeasurementUs
                 .build();
 
         BodyMeasurement saved = bodyMeasurementRepositoryPort.save(measurement);
+        log.info("Created body measurement measurementId={} for userId={}", saved.getId(), userId);
         return saved.getId();
     }
 }

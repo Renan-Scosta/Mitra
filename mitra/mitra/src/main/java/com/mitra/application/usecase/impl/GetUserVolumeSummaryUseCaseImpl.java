@@ -4,6 +4,7 @@ import com.mitra.application.port.out.WorkoutSessionRepositoryPort;
 import com.mitra.application.usecase.GetUserVolumeSummaryUseCase;
 import com.mitra.domain.model.WorkoutSession;
 import com.mitra.presentation.dto.response.VolumeSummaryResponseDto;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -12,6 +13,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+@Slf4j
 @Service
 @Transactional(readOnly = true)
 public class GetUserVolumeSummaryUseCaseImpl implements GetUserVolumeSummaryUseCase {
@@ -24,6 +26,7 @@ public class GetUserVolumeSummaryUseCaseImpl implements GetUserVolumeSummaryUseC
 
     @Override
     public List<VolumeSummaryResponseDto> execute(Long userId, LocalDateTime startDate, LocalDateTime endDate) {
+        log.debug("Calculating volume summary userId={} range={} to {}", userId, startDate, endDate);
         List<WorkoutSession> sessionsInRange = sessionRepositoryPort.findByUserId(userId).stream()
                 .filter(s -> s.getStartTime() != null && !s.getStartTime().isBefore(startDate) && !s.getStartTime().isAfter(endDate))
                 .toList();

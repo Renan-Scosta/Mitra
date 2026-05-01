@@ -9,8 +9,10 @@ import com.mitra.domain.model.SetRecord;
 import com.mitra.domain.model.WorkoutSession;
 import com.mitra.presentation.dto.request.LogSetRequestDto;
 import com.mitra.presentation.dto.response.SetRecordResponseDto;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
+@Slf4j
 @Service
 public class LogSetRecordUseCaseImpl implements LogSetRecordUseCase {
 
@@ -32,6 +34,7 @@ public class LogSetRecordUseCaseImpl implements LogSetRecordUseCase {
                 .orElseThrow(() -> new IllegalArgumentException("Session not found"));
 
         if (!session.getUserId().equals(userId)) {
+            log.warn("Ownership violation: userId={} tried sessionId={}", userId, sessionId);
             throw new SecurityException("You do not own this session");
         }
 
@@ -51,6 +54,7 @@ public class LogSetRecordUseCaseImpl implements LogSetRecordUseCase {
                 .build();
 
         SetRecord saved = setRecordRepositoryPort.save(record);
+        log.info("Logged set setId={} sessionId={} exerciseId={}", saved.getId(), sessionId, request.exerciseId());
 
         return new SetRecordResponseDto(
                 saved.getId(),

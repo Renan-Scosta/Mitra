@@ -7,11 +7,13 @@ import com.mitra.domain.model.User;
 import com.mitra.domain.model.enums.Gender;
 import com.mitra.domain.model.enums.Role;
 import com.mitra.infrastructure.security.TokenService;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
 import java.util.Optional;
 
+@Slf4j
 @Service
 public class GoogleLoginUseCaseImpl implements GoogleLoginUseCase {
 
@@ -30,13 +32,17 @@ public class GoogleLoginUseCaseImpl implements GoogleLoginUseCase {
     @Override
     public String execute(String idTokenString) {
         String email = tokenVerifierPort.verifyToken(idTokenString)
-                .orElseThrow(() -> new IllegalArgumentException("Invalid Google ID token"));
+                .orElseThrow(() -> {
+                    log.warn("Google login failed — invalid token");
+                    return new IllegalArgumentException("Invalid Google ID token");
+                });
 
         Optional<User> existingUserOpt = userRepositoryPort.findByEmail(email);
 
         User user;
         if (existingUserOpt.isPresent()) {
             user = existingUserOpt.get();
+            log.info("Google login: existing user userId={} email={}", user.getId(), email);
         } else {
             User newUser = User.builder()
                     .email(email)
@@ -48,8 +54,10 @@ public class GoogleLoginUseCaseImpl implements GoogleLoginUseCase {
                     .role(Role.USER)
                     .build();
             user = userRepositoryPort.save(newUser);
+            log.info("Google login: created new user userId={} email={}", user.getId(), email);
         }
 
         return tokenService.generateToken(user.getEmail(), user.getId());
     }
 }
+

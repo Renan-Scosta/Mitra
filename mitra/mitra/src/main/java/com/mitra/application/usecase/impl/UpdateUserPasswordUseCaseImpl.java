@@ -6,9 +6,11 @@ import com.mitra.application.port.out.UserRepositoryPort;
 import com.mitra.application.usecase.UpdateUserPasswordUseCase;
 import com.mitra.domain.model.User;
 import com.mitra.presentation.dto.request.UpdateUserPasswordRequestDto;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+@Slf4j
 @Service
 @Transactional
 public class UpdateUserPasswordUseCaseImpl implements UpdateUserPasswordUseCase {
@@ -32,10 +34,12 @@ public class UpdateUserPasswordUseCaseImpl implements UpdateUserPasswordUseCase 
 
         // Skip password validation if the user was registered via Google OAuth2 with the dummy password
         if ("[OAUTH2_GOOGLE]".equals(user.getPassword())) {
+             log.warn("Password change blocked — OAuth2 account userId={}", userId);
              throw new SecurityException("Account is managed by Google OAuth2. Password cannot be changed.");
         }
 
         if (!passwordEncoderPort.matches(request.currentPassword(), user.getPassword())) {
+            log.warn("Password change failed — wrong current password userId={}", userId);
             throw new SecurityException("Current password is incorrect");
         }
 
@@ -51,5 +55,6 @@ public class UpdateUserPasswordUseCaseImpl implements UpdateUserPasswordUseCase 
                 .build();
 
         userRepositoryPort.save(updatedUser);
+        log.info("Password updated for userId={}", userId);
     }
 }

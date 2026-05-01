@@ -2,6 +2,7 @@ package com.mitra.application.usecase.impl;
 
 import com.mitra.application.usecase.StartWorkoutSessionUseCase;
 import com.mitra.presentation.dto.request.StartSessionRequestDto;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import com.mitra.application.port.out.WorkoutRoutineRepositoryPort;
@@ -10,6 +11,7 @@ import com.mitra.domain.model.WorkoutRoutine;
 import com.mitra.domain.model.WorkoutSession;
 import java.time.LocalDateTime;
 
+@Slf4j
 @Service
 public class StartWorkoutSessionUseCaseImpl implements StartWorkoutSessionUseCase {
 
@@ -29,6 +31,7 @@ public class StartWorkoutSessionUseCaseImpl implements StartWorkoutSessionUseCas
         
         // Ensure isolation (Routine belongs to the user)
         if (!routine.getUserId().equals(userId)) {
+            log.warn("Ownership violation: userId={} tried routineId={}", userId, request.routineId());
             throw new SecurityException("You do not have permission to execute this routine");
         }
         
@@ -39,6 +42,7 @@ public class StartWorkoutSessionUseCaseImpl implements StartWorkoutSessionUseCas
                 .build();
                 
         WorkoutSession saved = workoutSessionRepositoryPort.save(session);
+        log.info("Started session sessionId={} for userId={} routineId={}", saved.getId(), userId, routine.getId());
         return saved.getId();
     }
 }

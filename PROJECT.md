@@ -2,7 +2,7 @@
 
 > **Documento vivo.** Este arquivo é o onboarding doc da equipe (humanos + agentes de IA).
 > Deve ser lido integralmente antes de qualquer interação com o projeto.
-> **Última atualização**: 2026-04-29
+> **Última atualização**: 2026-04-30
 
 ---
 
@@ -39,7 +39,7 @@ O sistema permite registrar usuários, gerenciar perfis, montar rotinas de trein
 | **OAuth2** | Google API Client (API-first Stateless OAuth2) | 2.4.0 |
 | **Criptografia** | BCryptPasswordEncoder | — |
 | **Documentação API** | Springdoc OpenAPI (Swagger UI) | 3.0.2 |
-| **Observabilidade** | Spring Boot Actuator | via Spring Boot BOM |
+| **Observabilidade** | Spring Boot Actuator + SLF4J (@Slf4j Lombok) | via Spring Boot BOM |
 | **Boilerplate** | Lombok | via Spring Boot BOM |
 | **Testes** | JUnit 5 + Mockito + MockMvc | via Spring Boot BOM |
 
@@ -442,6 +442,32 @@ SecurityContextHolder.getContext().setAuthentication(auth);
 ### ❌ Flyway não roda automaticamente no Spring Boot 4 com `flyway-core`
 **Causa**: No Spring Boot 4, adicionar apenas `flyway-core` ao classpath **não** dispara auto-configuração. O pacote mudou para `org.springframework.boot.flyway.autoconfigure`.
 **Solução**: Usar `spring-boot-starter-flyway` ao invés de `flyway-core`. Para PostgreSQL, adicionar também `flyway-database-postgresql`. Migrations ficam em `src/main/resources/db/migration/`.
+
+---
+
+## 11.5. Logging Estruturado
+
+### Estratégia por nível
+
+| Nível | Onde | Exemplo |
+|---|---|---|
+| `INFO` | Operações de escrita (create, update, delete, login) | `Registered user userId=42 email=x@y.com` |
+| `DEBUG` | Operações de leitura (get, list, calculate) | `Fetching dashboard for userId=1` |
+| `WARN` | Violações de ownership, tokens inválidos, falhas de autenticação | `Ownership violation: userId=1 tried sessionId=99` |
+| `ERROR` | Exceções inesperadas (ex: falha na geração de JWT) | `JWT generation error for email=x userId=1` |
+
+### Padrão
+- Todas as classes usam `@Slf4j` do Lombok (auto-gera `private static final Logger log`)
+- Logs usam **placeholders SLF4J `{}`** (nunca concatenação de strings)
+- **Nunca** são logados: senhas, tokens JWT completos, dados de saúde
+
+### Cobertura de logging
+- **26 classes** instrumentadas: SecurityFilter, TokenService, GlobalExceptionHandler, 22 Use Cases + CalculateBmrUseCase
+- Configuração em `application.properties`:
+  ```properties
+  logging.level.com.mitra=INFO
+  logging.level.com.mitra.infrastructure.security=DEBUG
+  ```
 
 ---
 

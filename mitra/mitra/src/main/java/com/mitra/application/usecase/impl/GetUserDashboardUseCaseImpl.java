@@ -7,6 +7,7 @@ import com.mitra.domain.model.WorkoutSession;
 import com.mitra.presentation.dto.response.DashboardResponseDto;
 import com.mitra.presentation.dto.response.SessionCaloriesResponseDto;
 import com.mitra.presentation.dto.response.WorkoutSessionResponseDto;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -16,6 +17,7 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
 
+@Slf4j
 @Service
 @Transactional(readOnly = true)
 public class GetUserDashboardUseCaseImpl implements GetUserDashboardUseCase {
@@ -31,6 +33,7 @@ public class GetUserDashboardUseCaseImpl implements GetUserDashboardUseCase {
 
     @Override
     public DashboardResponseDto execute(Long userId) {
+        log.debug("Building dashboard for userId={}", userId);
         List<WorkoutSession> allFinishedSessions = sessionRepositoryPort.findByUserId(userId).stream()
                 .filter(s -> s.getEndTime() != null) // Only count finished ones for metrics
                 .toList();
@@ -79,6 +82,7 @@ public class GetUserDashboardUseCaseImpl implements GetUserDashboardUseCase {
             }
         }
 
+        log.debug("Dashboard built for userId={}: streak={} workouts={} calories={}", userId, currentStreak, workoutsThisWeek, totalCaloriesThisWeek);
         return new DashboardResponseDto(workoutsThisWeek, currentStreak, totalCaloriesThisWeek, lastWorkoutDto);
     }
 

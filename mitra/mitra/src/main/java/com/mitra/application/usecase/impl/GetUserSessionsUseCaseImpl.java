@@ -5,6 +5,7 @@ import com.mitra.application.usecase.GetUserSessionsUseCase;
 import com.mitra.domain.model.WorkoutSession;
 import com.mitra.presentation.dto.response.SetRecordResponseDto;
 import com.mitra.presentation.dto.response.WorkoutSessionResponseDto;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -16,6 +17,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
+@Slf4j
 @Service
 public class GetUserSessionsUseCaseImpl implements GetUserSessionsUseCase {
 
@@ -28,6 +30,7 @@ public class GetUserSessionsUseCaseImpl implements GetUserSessionsUseCase {
     @Override
     @Transactional(readOnly = true)
     public Page<WorkoutSessionResponseDto> execute(Long userId, LocalDate startDate, LocalDate endDate, Pageable pageable) {
+        log.debug("Listing sessions for userId={} range={} to {}", userId, startDate, endDate);
         LocalDate start = startDate != null ? startDate : LocalDate.of(2020, 1, 1);
         LocalDate end = endDate != null ? endDate : LocalDate.now().plusDays(1);
         
