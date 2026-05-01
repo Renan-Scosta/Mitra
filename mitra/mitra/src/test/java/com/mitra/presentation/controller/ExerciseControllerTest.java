@@ -19,6 +19,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import com.mitra.domain.model.User;
+import com.mitra.infrastructure.security.RateLimitFilter;
 
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
@@ -44,6 +45,9 @@ class ExerciseControllerTest {
 
     @Autowired
     private MockMvc mockMvc;
+
+    @MockitoBean
+    private RateLimitFilter rateLimitFilter;
 
     @MockitoBean
     private CreateExerciseUseCase createExerciseUseCase;

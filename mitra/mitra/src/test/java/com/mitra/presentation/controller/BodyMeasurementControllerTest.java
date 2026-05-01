@@ -3,6 +3,7 @@ package com.mitra.presentation.controller;
 import com.mitra.application.usecase.CreateBodyMeasurementUseCase;
 import com.mitra.application.usecase.GetBodyMeasurementsUseCase;
 import com.mitra.domain.model.User;
+import com.mitra.infrastructure.security.RateLimitFilter;
 import com.mitra.presentation.dto.response.BodyMeasurementResponseDto;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -35,6 +36,9 @@ class BodyMeasurementControllerTest {
 
     @Autowired
     private MockMvc mockMvc;
+
+    @MockitoBean
+    private RateLimitFilter rateLimitFilter;
 
     @MockitoBean
     private CreateBodyMeasurementUseCase createBodyMeasurementUseCase;

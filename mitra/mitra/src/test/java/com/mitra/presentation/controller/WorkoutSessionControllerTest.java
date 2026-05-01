@@ -7,6 +7,7 @@ import com.mitra.application.usecase.GetWorkoutSessionUseCase;
 import com.mitra.application.usecase.GetUserSessionsUseCase;
 import com.mitra.application.usecase.CalculateSessionCaloriesUseCase;
 import com.mitra.domain.model.User;
+import com.mitra.infrastructure.security.RateLimitFilter;
 import com.mitra.presentation.dto.response.SetRecordResponseDto;
 import com.mitra.presentation.dto.response.SessionSummaryResponseDto;
 import com.mitra.presentation.dto.response.WorkoutSessionResponseDto;
@@ -48,6 +49,9 @@ class WorkoutSessionControllerTest {
 
     @Autowired
     private MockMvc mockMvc;
+
+    @MockitoBean
+    private RateLimitFilter rateLimitFilter;
 
     @MockitoBean
     private StartWorkoutSessionUseCase startWorkoutSessionUseCase;

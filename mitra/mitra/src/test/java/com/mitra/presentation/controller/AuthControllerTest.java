@@ -4,6 +4,7 @@ import com.mitra.application.port.out.UserRepositoryPort;
 import com.mitra.application.usecase.GoogleLoginUseCase;
 import com.mitra.domain.model.User;
 import com.mitra.infrastructure.security.TokenService;
+import com.mitra.infrastructure.security.RateLimitFilter;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
@@ -29,6 +30,9 @@ class AuthControllerTest {
 
     @Autowired
     private MockMvc mockMvc;
+
+    @MockitoBean
+    private RateLimitFilter rateLimitFilter;
 
     @MockitoBean
     private UserRepositoryPort userRepositoryPort;

@@ -4,6 +4,7 @@ import com.mitra.application.usecase.AddRoutineExerciseUseCase;
 import com.mitra.application.usecase.CreateWorkoutRoutineUseCase;
 import com.mitra.application.usecase.GetWorkoutRoutinesUseCase;
 import com.mitra.domain.model.User;
+import com.mitra.infrastructure.security.RateLimitFilter;
 import com.mitra.presentation.dto.response.ExerciseResponseDto;
 import com.mitra.presentation.dto.response.RoutineExerciseResponseDto;
 import com.mitra.presentation.dto.response.RoutineResponseDto;
@@ -40,6 +41,9 @@ class RoutineControllerTest {
 
     @Autowired
     private MockMvc mockMvc;
+
+    @MockitoBean
+    private RateLimitFilter rateLimitFilter;
 
     @MockitoBean
     private CreateWorkoutRoutineUseCase createWorkoutRoutineUseCase;

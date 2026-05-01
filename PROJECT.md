@@ -40,6 +40,7 @@ O sistema permite registrar usuários, gerenciar perfis, montar rotinas de trein
 | **Criptografia** | BCryptPasswordEncoder | — |
 | **Documentação API** | Springdoc OpenAPI (Swagger UI) | 3.0.2 |
 | **Observabilidade** | Spring Boot Actuator + SLF4J (@Slf4j Lombok) | via Spring Boot BOM |
+| **Rate Limiting** | Bucket4j (Token Bucket, in-memory) | 8.15.0 |
 | **Boilerplate** | Lombok | via Spring Boot BOM |
 | **Testes** | JUnit 5 + Mockito + MockMvc | via Spring Boot BOM |
 
@@ -468,6 +469,50 @@ SecurityContextHolder.getContext().setAuthentication(auth);
   logging.level.com.mitra=INFO
   logging.level.com.mitra.infrastructure.security=DEBUG
   ```
+
+---
+
+## 11.6. Rate Limiting
+
+### Proteção contra brute-force
+Endpoints públicos são protegidos pelo `RateLimitFilter` (Bucket4j Token Bucket algorithm):
+
+| Endpoint | Limite | Janela |
+|---|---|---|
+| `POST /api/v1/auth/login` | 10 requests | 1 minuto |
+| `POST /api/v1/auth/google` | 10 requests | 1 minuto |
+| `POST /api/v1/users` | 5 requests | 1 minuto |
+
+### Comportamento
+- **Chave**: IP do cliente (`X-Forwarded-For` → `RemoteAddr` fallback)
+- **Resposta**: `429 Too Many Requests` com headers `Retry-After` e `X-Rate-Limit-Remaining`
+- **Posição na chain**: `RateLimitFilter` → `SecurityFilter` → Controllers (bloqueia antes de processar JWT)
+- **Resposta 429 escrita diretamente no `HttpServletResponse`** (filtros rodam antes do DispatcherServlet, `@ControllerAdvice` não captura exceções de filtros)
+
+### Configuração
+```properties
+rate-limit.login.requests=10
+rate-limit.login.minutes=1
+rate-limit.register.requests=5
+rate-limit.register.minutes=1
+```
+
+---
+
+## 11.7. Observabilidade e Health Checks
+
+### Actuator & Health Indicators
+O Spring Boot Actuator está configurado para expor os endpoints de `health` e `metrics`.
+A rota `/actuator/health` exibe detalhes completos (`show-details=always`), porém **está protegida** e só permite acesso a usuários autenticados com a role `ADMIN`.
+
+#### Custom Health Indicator (`databaseLatency`)
+Foi implementado um indicador customizado (`DatabaseLatencyHealthIndicator`) que complementa os checks padrões:
+- Executa a query `SELECT 1` no PostgreSQL.
+- Retorna o status da conexão (`UP` / `DOWN`).
+- Mede e retorna a **latência exata** (`latency_ms`) de resposta do banco.
+- Em caso de falha, captura a exceção (`error`) sem derrubar a aplicação, permitindo que orquestradores tomem a decisão de restart.
+
+*Nota Arquitetural*: Não atrelamos Health Checks da nossa API à disponibilidade de serviços externos (como Google OAuth2), pois falhas em terceiros não devem causar reinicialização (restart) do nosso container/servidor.
 
 ---
 

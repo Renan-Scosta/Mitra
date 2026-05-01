@@ -2,6 +2,7 @@ package com.mitra.presentation.controller;
 
 import com.mitra.application.usecase.CalculateBmrUseCase;
 import com.mitra.domain.model.User;
+import com.mitra.infrastructure.security.RateLimitFilter;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -31,6 +32,9 @@ class UserControllerTest {
 
     @Autowired
     private MockMvc mockMvc;
+
+    @MockitoBean
+    private RateLimitFilter rateLimitFilter;
 
     @MockitoBean
     private CalculateBmrUseCase calculateBmrUseCase;
