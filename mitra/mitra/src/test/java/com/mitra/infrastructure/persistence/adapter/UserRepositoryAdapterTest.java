@@ -1,5 +1,7 @@
 package com.mitra.infrastructure.persistence.adapter;
 
+import com.mitra.infrastructure.persistence.AbstractIntegrationTest;
+
 import com.mitra.domain.model.User;
 import com.mitra.domain.model.enums.Gender;
 import com.mitra.infrastructure.persistence.repository.UserJpaRepository;
@@ -16,7 +18,7 @@ import static org.junit.jupiter.api.Assertions.*;
 
 @DataJpaTest
 @ActiveProfiles("test")
-class UserRepositoryAdapterTest {
+class UserRepositoryAdapterTest extends AbstractIntegrationTest {
 
     @Autowired
     private UserJpaRepository userJpaRepository;

@@ -1,5 +1,7 @@
 package com.mitra.infrastructure.persistence.adapter;
 
+import com.mitra.infrastructure.persistence.AbstractIntegrationTest;
+
 import com.mitra.domain.model.BodyMeasurement;
 import com.mitra.domain.model.User;
 import com.mitra.domain.model.enums.Gender;
@@ -19,7 +21,7 @@ import static org.junit.jupiter.api.Assertions.*;
 
 @DataJpaTest
 @ActiveProfiles("test")
-class BodyMeasurementRepositoryAdapterTest {
+class BodyMeasurementRepositoryAdapterTest extends AbstractIntegrationTest {
 
     @Autowired
     private BodyMeasurementJpaRepository bodyMeasurementJpaRepository;

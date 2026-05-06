@@ -1,5 +1,7 @@
 package com.mitra.infrastructure.persistence.adapter;
 
+import com.mitra.infrastructure.persistence.AbstractIntegrationTest;
+
 import com.mitra.domain.model.Exercise;
 import com.mitra.domain.model.RoutineExercise;
 import com.mitra.domain.model.User;
@@ -24,7 +26,7 @@ import static org.junit.jupiter.api.Assertions.*;
 
 @DataJpaTest
 @ActiveProfiles("test")
-class RoutineExerciseRepositoryAdapterTest {
+class RoutineExerciseRepositoryAdapterTest extends AbstractIntegrationTest {
 
     @Autowired
     private RoutineExerciseJpaRepository routineExerciseJpaRepository;

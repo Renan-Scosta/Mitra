@@ -34,7 +34,7 @@ O sistema permite registrar usuários, gerenciar perfis, montar rotinas de trein
 | **ORM** | Spring Data JPA / Hibernate | via Spring Boot BOM |
 | **Migrations** | Flyway (spring-boot-starter-flyway) | via Spring Boot BOM |
 | **Banco Produção** | PostgreSQL | 16+ |
-| **Banco Testes** | H2 (in-memory) | via Spring Boot BOM |
+| **Banco Testes** | TestContainers (PostgreSQL 16) | via Spring Boot BOM |
 | **Segurança** | Spring Security + JWT (auth0/java-jwt 4.4.0) | — |
 | **OAuth2** | Google API Client (API-first Stateless OAuth2) | 2.4.0 |
 | **Criptografia** | BCryptPasswordEncoder | — |
@@ -163,7 +163,7 @@ Mitra-App/
         │   │
         │   └── resources/
         │       ├── application.properties        ← Config produção (PostgreSQL)
-        │       └── application-test.properties   ← Config teste (H2 in-memory)
+        │       └── application-test.properties   ← Config teste (PostgreSQL via TestContainers)
         │
         └── test/
             └── java/com/mitra/
@@ -177,6 +177,7 @@ Mitra-App/
                 ├── infrastructure/
                 │   ├── config/TestSecurityConfig.java
                 │   ├── security/GoogleTokenVerifierAdapterTest.java
+                │   ├── persistence/AbstractIntegrationTest.java  ← TestContainers base
                 │   └── persistence/adapter/  (7 adapter tests @DataJpaTest)
                 └── presentation/controller/  (6 controller tests @WebMvcTest)
 ```
@@ -393,15 +394,15 @@ O `DatabaseSeeder` (ativo apenas fora do perfil `test`) cria automaticamente:
 | Unit (Domain) | 21 | Nenhuma | Nenhum | `BmrCalculator`, `CalorieCalculator`, `User`, `WorkoutSession`, `BodyMeasurement` |
 | Unit (UseCase) | ~57 | `@ExtendWith(MockitoExtension)` | Nenhum | Todos os 23 use cases + ownership violations |
 | Unit (Security) | 2 | Nenhuma | Nenhum | `GoogleTokenVerifierAdapter` |
-| Integration (Persistence) | 16 | `@DataJpaTest` | H2 | Todos os 7 Repository Adapters |
+| Integration (Persistence) | 16 | `@DataJpaTest` | PostgreSQL | Todos os 7 Repository Adapters |
 | WebMvc (Controller) | ~49 | `@WebMvcTest` | Nenhum | Auth, User, Exercise, Routine, Session, BodyMeasurement controllers |
-| Context | 1 | `@SpringBootTest` | H2 | Verifica que o contexto Spring sobe |
+| Context | 1 | `@SpringBootTest` | PostgreSQL | Verifica que o contexto Spring sobe |
 | **Total** | **~146** | | |
 
 ### Configuração de teste
 - Perfil `test` ativo via `@ActiveProfiles("test")`
 - `TestSecurityConfig` (`@TestConfiguration @Profile("test")`) fornece `PasswordEncoder` bean e `SecurityFilterChain` permissivo
-- `application-test.properties` exclui apenas OAuth2 auto-config
+- Testes de integração (context loads e persistence adapters) estendem `AbstractIntegrationTest`, que sobe um container PostgreSQL real 16 via TestContainers e registra o DataSource (`@ServiceConnection`).
 - Controllers WebMvc usam `@AutoConfigureMockMvc(addFilters = false)` + `SecurityContextHolder` com `User` mockado no `@BeforeEach`
 
 ### Rodando testes

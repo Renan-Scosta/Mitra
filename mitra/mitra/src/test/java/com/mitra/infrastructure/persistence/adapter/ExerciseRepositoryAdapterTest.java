@@ -1,5 +1,7 @@
 package com.mitra.infrastructure.persistence.adapter;
 
+import com.mitra.infrastructure.persistence.AbstractIntegrationTest;
+
 import com.mitra.domain.model.Exercise;
 import com.mitra.domain.model.enums.TrackingType;
 import com.mitra.infrastructure.persistence.repository.ExerciseJpaRepository;
@@ -20,7 +22,7 @@ import static org.junit.jupiter.api.Assertions.*;
 
 @DataJpaTest
 @ActiveProfiles("test")
-class ExerciseRepositoryAdapterTest {
+class ExerciseRepositoryAdapterTest extends AbstractIntegrationTest {
 
     @Autowired
     private ExerciseJpaRepository exerciseJpaRepository;

@@ -1,5 +1,7 @@
 package com.mitra;
 
+import com.mitra.infrastructure.persistence.AbstractIntegrationTest;
+
 import com.mitra.infrastructure.config.TestSecurityConfig;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -9,7 +11,7 @@ import org.springframework.test.context.ActiveProfiles;
 @SpringBootTest
 @ActiveProfiles("test")
 @Import(TestSecurityConfig.class)
-class MitraApplicationTests {
+class MitraApplicationTests extends AbstractIntegrationTest {
 
 	@Test
 	void contextLoads() {
