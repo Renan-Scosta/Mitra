@@ -20,14 +20,19 @@ public class GetAllExercisesUseCaseImpl implements GetAllExercisesUseCase {
 
     @Override
     public Page<ExerciseResponseDto> execute(Pageable pageable) {
-        log.debug("Listing exercises page={} size={}", pageable.getPageNumber(), pageable.getPageSize());
-        return exerciseRepositoryPort.findAll(pageable)
-                .map(exercise -> new ExerciseResponseDto(
-                        exercise.getId(),
-                        exercise.getName(),
-                        exercise.getMuscleGroup(),
-                        exercise.getMetFactor(),
-                        exercise.getTrackingType()
-                ));
+        log.debug(
+                "Listing exercises page={} size={}",
+                pageable.getPageNumber(),
+                pageable.getPageSize());
+        return exerciseRepositoryPort
+                .findAll(pageable)
+                .map(
+                        exercise ->
+                                new ExerciseResponseDto(
+                                        exercise.getId(),
+                                        exercise.getName(),
+                                        exercise.getMuscleGroup(),
+                                        exercise.getMetFactor(),
+                                        exercise.getTrackingType()));
     }
 }

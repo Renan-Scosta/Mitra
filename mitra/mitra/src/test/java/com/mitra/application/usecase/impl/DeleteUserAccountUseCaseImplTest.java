@@ -1,24 +1,22 @@
 package com.mitra.application.usecase.impl;
 
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.Mockito.*;
+
 import com.mitra.application.exception.ResourceNotFoundException;
 import com.mitra.application.port.out.UserRepositoryPort;
 import com.mitra.domain.model.User;
+import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import java.util.Optional;
-
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.Mockito.*;
-
 @ExtendWith(MockitoExtension.class)
 class DeleteUserAccountUseCaseImplTest {
 
-    @Mock
-    private UserRepositoryPort userRepositoryPort;
+    @Mock private UserRepositoryPort userRepositoryPort;
 
     private DeleteUserAccountUseCaseImpl useCase;
 

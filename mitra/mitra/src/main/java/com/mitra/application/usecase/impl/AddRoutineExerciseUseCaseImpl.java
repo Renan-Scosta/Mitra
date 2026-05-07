@@ -31,38 +31,50 @@ public class AddRoutineExerciseUseCaseImpl implements AddRoutineExerciseUseCase 
     }
 
     @Override
-    public RoutineExerciseResponseDto execute(Long userId, Long routineId, AddRoutineExerciseRequestDto request) {
-        WorkoutRoutine routine = workoutRoutineRepositoryPort.findById(routineId)
-                .orElseThrow(() -> new IllegalArgumentException("Routine not found with id: " + routineId));
+    public RoutineExerciseResponseDto execute(
+            Long userId, Long routineId, AddRoutineExerciseRequestDto request) {
+        WorkoutRoutine routine =
+                workoutRoutineRepositoryPort
+                        .findById(routineId)
+                        .orElseThrow(
+                                () ->
+                                        new IllegalArgumentException(
+                                                "Routine not found with id: " + routineId));
 
         if (!routine.getUserId().equals(userId)) {
             log.warn("Ownership violation: userId={} tried routineId={}", userId, routineId);
             throw new SecurityException("You do not own this routine");
         }
 
-        Exercise exercise = exerciseRepositoryPort.findById(request.exerciseId())
-                .orElseThrow(() -> new IllegalArgumentException("Exercise not found with id: " + request.exerciseId()));
+        Exercise exercise =
+                exerciseRepositoryPort
+                        .findById(request.exerciseId())
+                        .orElseThrow(
+                                () ->
+                                        new IllegalArgumentException(
+                                                "Exercise not found with id: "
+                                                        + request.exerciseId()));
 
-        RoutineExercise routineExercise = RoutineExercise.builder()
-                .routineId(routineId)
-                .exercise(exercise)
-                .targetSets(request.targetSets())
-                .targetReps(request.targetReps())
-                .build();
+        RoutineExercise routineExercise =
+                RoutineExercise.builder()
+                        .routineId(routineId)
+                        .exercise(exercise)
+                        .targetSets(request.targetSets())
+                        .targetReps(request.targetReps())
+                        .build();
 
         RoutineExercise saved = routineExerciseRepositoryPort.save(routineExercise);
         log.info("Added exercise exerciseId={} to routineId={}", request.exerciseId(), routineId);
 
-        ExerciseResponseDto exerciseResponse = new ExerciseResponseDto(
-                exercise.getId(), exercise.getName(), exercise.getMuscleGroup(),
-                exercise.getMetFactor(), exercise.getTrackingType()
-        );
+        ExerciseResponseDto exerciseResponse =
+                new ExerciseResponseDto(
+                        exercise.getId(),
+                        exercise.getName(),
+                        exercise.getMuscleGroup(),
+                        exercise.getMetFactor(),
+                        exercise.getTrackingType());
 
         return new RoutineExerciseResponseDto(
-                saved.getId(),
-                exerciseResponse,
-                saved.getTargetSets(),
-                saved.getTargetReps()
-        );
+                saved.getId(), exerciseResponse, saved.getTargetSets(), saved.getTargetReps());
     }
 }

@@ -20,9 +20,10 @@ public class LogSetRecordUseCaseImpl implements LogSetRecordUseCase {
     private final ExerciseRepositoryPort exerciseRepositoryPort;
     private final SetRecordRepositoryPort setRecordRepositoryPort;
 
-    public LogSetRecordUseCaseImpl(WorkoutSessionRepositoryPort workoutSessionRepositoryPort,
-                                   ExerciseRepositoryPort exerciseRepositoryPort,
-                                   SetRecordRepositoryPort setRecordRepositoryPort) {
+    public LogSetRecordUseCaseImpl(
+            WorkoutSessionRepositoryPort workoutSessionRepositoryPort,
+            ExerciseRepositoryPort exerciseRepositoryPort,
+            SetRecordRepositoryPort setRecordRepositoryPort) {
         this.workoutSessionRepositoryPort = workoutSessionRepositoryPort;
         this.exerciseRepositoryPort = exerciseRepositoryPort;
         this.setRecordRepositoryPort = setRecordRepositoryPort;
@@ -30,8 +31,10 @@ public class LogSetRecordUseCaseImpl implements LogSetRecordUseCase {
 
     @Override
     public SetRecordResponseDto execute(Long userId, Long sessionId, LogSetRequestDto request) {
-        WorkoutSession session = workoutSessionRepositoryPort.findById(sessionId)
-                .orElseThrow(() -> new IllegalArgumentException("Session not found"));
+        WorkoutSession session =
+                workoutSessionRepositoryPort
+                        .findById(sessionId)
+                        .orElseThrow(() -> new IllegalArgumentException("Session not found"));
 
         if (!session.getUserId().equals(userId)) {
             log.warn("Ownership violation: userId={} tried sessionId={}", userId, sessionId);
@@ -42,26 +45,32 @@ public class LogSetRecordUseCaseImpl implements LogSetRecordUseCase {
             throw new IllegalStateException("Session is no longer active");
         }
 
-        Exercise exercise = exerciseRepositoryPort.findById(request.exerciseId())
-                .orElseThrow(() -> new IllegalArgumentException("Exercise not found"));
+        Exercise exercise =
+                exerciseRepositoryPort
+                        .findById(request.exerciseId())
+                        .orElseThrow(() -> new IllegalArgumentException("Exercise not found"));
 
-        SetRecord record = SetRecord.builder()
-                .sessionId(sessionId)
-                .exercise(exercise)
-                .weightKg(request.weightKg())
-                .reps(request.reps())
-                .durationSeconds(request.durationSeconds())
-                .build();
+        SetRecord record =
+                SetRecord.builder()
+                        .sessionId(sessionId)
+                        .exercise(exercise)
+                        .weightKg(request.weightKg())
+                        .reps(request.reps())
+                        .durationSeconds(request.durationSeconds())
+                        .build();
 
         SetRecord saved = setRecordRepositoryPort.save(record);
-        log.info("Logged set setId={} sessionId={} exerciseId={}", saved.getId(), sessionId, request.exerciseId());
+        log.info(
+                "Logged set setId={} sessionId={} exerciseId={}",
+                saved.getId(),
+                sessionId,
+                request.exerciseId());
 
         return new SetRecordResponseDto(
                 saved.getId(),
                 saved.getExercise().getId(),
                 saved.getWeightKg(),
                 saved.getReps(),
-                saved.getDurationSeconds()
-        );
+                saved.getDurationSeconds());
     }
 }

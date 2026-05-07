@@ -17,6 +17,8 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+import java.net.URI;
+import java.time.LocalDate;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.format.annotation.DateTimeFormat;
@@ -24,11 +26,9 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
-import java.net.URI;
-import java.time.LocalDate;
-import java.util.List;
-
-@Tag(name = "Workout Sessions", description = "Endpoints for executing and tracking workout routines")
+@Tag(
+        name = "Workout Sessions",
+        description = "Endpoints for executing and tracking workout routines")
 @RestController
 @RequestMapping("/api/v1/sessions")
 public class WorkoutSessionController {
@@ -40,12 +40,13 @@ public class WorkoutSessionController {
     private final GetUserSessionsUseCase getUserSessionsUseCase;
     private final CalculateSessionCaloriesUseCase calculateSessionCaloriesUseCase;
 
-    public WorkoutSessionController(StartWorkoutSessionUseCase startWorkoutSessionUseCase,
-                                    LogSetRecordUseCase logSetRecordUseCase,
-                                    FinishWorkoutSessionUseCase finishWorkoutSessionUseCase,
-                                    GetWorkoutSessionUseCase getWorkoutSessionUseCase,
-                                    GetUserSessionsUseCase getUserSessionsUseCase,
-                                    CalculateSessionCaloriesUseCase calculateSessionCaloriesUseCase) {
+    public WorkoutSessionController(
+            StartWorkoutSessionUseCase startWorkoutSessionUseCase,
+            LogSetRecordUseCase logSetRecordUseCase,
+            FinishWorkoutSessionUseCase finishWorkoutSessionUseCase,
+            GetWorkoutSessionUseCase getWorkoutSessionUseCase,
+            GetUserSessionsUseCase getUserSessionsUseCase,
+            CalculateSessionCaloriesUseCase calculateSessionCaloriesUseCase) {
         this.startWorkoutSessionUseCase = startWorkoutSessionUseCase;
         this.logSetRecordUseCase = logSetRecordUseCase;
         this.finishWorkoutSessionUseCase = finishWorkoutSessionUseCase;
@@ -54,66 +55,98 @@ public class WorkoutSessionController {
         this.calculateSessionCaloriesUseCase = calculateSessionCaloriesUseCase;
     }
 
-    @Operation(summary = "Start a new workout session", description = "Initiates a session to execute a specific routine for the authenticated user")
+    @Operation(
+            summary = "Start a new workout session",
+            description =
+                    "Initiates a session to execute a specific routine for the authenticated user")
     @ApiResponse(responseCode = "201", description = "Session started successfully")
     @PostMapping
-    public ResponseEntity<Void> startSession(@Valid @RequestBody StartSessionRequestDto request,
-                                             @AuthenticationPrincipal User currentUser) {
+    public ResponseEntity<Void> startSession(
+            @Valid @RequestBody StartSessionRequestDto request,
+            @AuthenticationPrincipal User currentUser) {
         Long sessionId = startWorkoutSessionUseCase.execute(currentUser.getId(), request);
         return ResponseEntity.created(URI.create("/api/v1/sessions/" + sessionId)).build();
     }
 
-    @Operation(summary = "Log an exercise set", description = "Logs a single set execution into the active session")
+    @Operation(
+            summary = "Log an exercise set",
+            description = "Logs a single set execution into the active session")
     @ApiResponse(responseCode = "200", description = "Set logged successfully")
-    @ApiResponse(responseCode = "403", description = "Session does not belong to the authenticated user")
+    @ApiResponse(
+            responseCode = "403",
+            description = "Session does not belong to the authenticated user")
     @PostMapping("/{sessionId}/sets")
     public ResponseEntity<SetRecordResponseDto> logSet(
             @PathVariable Long sessionId,
             @Valid @RequestBody LogSetRequestDto request,
             @AuthenticationPrincipal User currentUser) {
-        SetRecordResponseDto response = logSetRecordUseCase.execute(currentUser.getId(), sessionId, request);
+        SetRecordResponseDto response =
+                logSetRecordUseCase.execute(currentUser.getId(), sessionId, request);
         return ResponseEntity.ok(response);
     }
 
-    @Operation(summary = "Finish a workout session", description = "Marks the session as finished and calculates summary statistics")
+    @Operation(
+            summary = "Finish a workout session",
+            description = "Marks the session as finished and calculates summary statistics")
     @ApiResponse(responseCode = "200", description = "Session finished successfully")
-    @ApiResponse(responseCode = "403", description = "Session does not belong to the authenticated user")
+    @ApiResponse(
+            responseCode = "403",
+            description = "Session does not belong to the authenticated user")
     @PostMapping("/{sessionId}/finish")
-    public ResponseEntity<SessionSummaryResponseDto> finishSession(@PathVariable Long sessionId,
-                                                                   @AuthenticationPrincipal User currentUser) {
-        SessionSummaryResponseDto summary = finishWorkoutSessionUseCase.execute(currentUser.getId(), sessionId);
+    public ResponseEntity<SessionSummaryResponseDto> finishSession(
+            @PathVariable Long sessionId, @AuthenticationPrincipal User currentUser) {
+        SessionSummaryResponseDto summary =
+                finishWorkoutSessionUseCase.execute(currentUser.getId(), sessionId);
         return ResponseEntity.ok(summary);
     }
 
-    @Operation(summary = "Get my session history", description = "Retrieves all workout sessions for the authenticated user with optional date filtering and pagination")
+    @Operation(
+            summary = "Get my session history",
+            description =
+                    "Retrieves all workout sessions for the authenticated user with optional date"
+                            + " filtering and pagination")
     @ApiResponse(responseCode = "200", description = "Sessions retrieved successfully")
     @GetMapping
     public ResponseEntity<Page<WorkoutSessionResponseDto>> getMySessions(
             @AuthenticationPrincipal User currentUser,
-            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
-            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
+                    LocalDate startDate,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
+                    LocalDate endDate,
             Pageable pageable) {
-        Page<WorkoutSessionResponseDto> sessions = getUserSessionsUseCase.execute(currentUser.getId(), startDate, endDate, pageable);
+        Page<WorkoutSessionResponseDto> sessions =
+                getUserSessionsUseCase.execute(currentUser.getId(), startDate, endDate, pageable);
         return ResponseEntity.ok(sessions);
     }
 
-    @Operation(summary = "Get session details", description = "Retrieves full details of a session, including all logged sets")
+    @Operation(
+            summary = "Get session details",
+            description = "Retrieves full details of a session, including all logged sets")
     @ApiResponse(responseCode = "200", description = "Session retrieved successfully")
-    @ApiResponse(responseCode = "403", description = "Session does not belong to the authenticated user")
+    @ApiResponse(
+            responseCode = "403",
+            description = "Session does not belong to the authenticated user")
     @GetMapping("/{sessionId}")
-    public ResponseEntity<WorkoutSessionResponseDto> getSession(@PathVariable Long sessionId,
-                                                                @AuthenticationPrincipal User currentUser) {
-        WorkoutSessionResponseDto sessionDto = getWorkoutSessionUseCase.execute(currentUser.getId(), sessionId);
+    public ResponseEntity<WorkoutSessionResponseDto> getSession(
+            @PathVariable Long sessionId, @AuthenticationPrincipal User currentUser) {
+        WorkoutSessionResponseDto sessionDto =
+                getWorkoutSessionUseCase.execute(currentUser.getId(), sessionId);
         return ResponseEntity.ok(sessionDto);
     }
 
-    @Operation(summary = "Calculate session calories", description = "Returns estimated calorie expenditure for the session broken down by exercise")
+    @Operation(
+            summary = "Calculate session calories",
+            description =
+                    "Returns estimated calorie expenditure for the session broken down by exercise")
     @ApiResponse(responseCode = "200", description = "Calories calculated successfully")
-    @ApiResponse(responseCode = "403", description = "Session does not belong to the authenticated user")
+    @ApiResponse(
+            responseCode = "403",
+            description = "Session does not belong to the authenticated user")
     @GetMapping("/{sessionId}/calories")
-    public ResponseEntity<SessionCaloriesResponseDto> getSessionCalories(@PathVariable Long sessionId,
-                                                                         @AuthenticationPrincipal User currentUser) {
-        SessionCaloriesResponseDto caloriesDto = calculateSessionCaloriesUseCase.execute(currentUser.getId(), sessionId);
+    public ResponseEntity<SessionCaloriesResponseDto> getSessionCalories(
+            @PathVariable Long sessionId, @AuthenticationPrincipal User currentUser) {
+        SessionCaloriesResponseDto caloriesDto =
+                calculateSessionCaloriesUseCase.execute(currentUser.getId(), sessionId);
         return ResponseEntity.ok(caloriesDto);
     }
 }

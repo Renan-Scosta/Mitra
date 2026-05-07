@@ -8,9 +8,8 @@ import com.mitra.domain.model.BodyMeasurement;
 import com.mitra.domain.model.User;
 import com.mitra.domain.model.enums.Role;
 import com.mitra.presentation.dto.request.CreateUserRequestDto;
-import lombok.extern.slf4j.Slf4j;
-
 import java.time.LocalDate;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 @Slf4j
@@ -32,28 +31,36 @@ public class RegisterUserUseCaseImpl implements RegisterUserUseCase {
 
     @Override
     public Long execute(CreateUserRequestDto request) {
-        userRepository.findByEmail(request.email()).ifPresent(existing -> {
-            log.warn("Registration failed — email already exists: {}", request.email());
-            throw new IllegalStateException("Email already registered: " + request.email());
-        });
+        userRepository
+                .findByEmail(request.email())
+                .ifPresent(
+                        existing -> {
+                            log.warn(
+                                    "Registration failed — email already exists: {}",
+                                    request.email());
+                            throw new IllegalStateException(
+                                    "Email already registered: " + request.email());
+                        });
 
-        User user = User.builder()
-                .name(request.name())
-                .email(request.email())
-                .password(passwordEncoderPort.encode(request.password()))
-                .birthDate(request.birthDate())
-                .gender(request.gender())
-                .heightCm(request.heightCm())
-                .role(Role.USER)
-                .build();
+        User user =
+                User.builder()
+                        .name(request.name())
+                        .email(request.email())
+                        .password(passwordEncoderPort.encode(request.password()))
+                        .birthDate(request.birthDate())
+                        .gender(request.gender())
+                        .heightCm(request.heightCm())
+                        .role(Role.USER)
+                        .build();
 
         User savedUser = userRepository.save(user);
 
-        BodyMeasurement initialMeasurement = BodyMeasurement.builder()
-                .userId(savedUser.getId())
-                .weightKg(request.initialWeightKg())
-                .recordDate(LocalDate.now())
-                .build();
+        BodyMeasurement initialMeasurement =
+                BodyMeasurement.builder()
+                        .userId(savedUser.getId())
+                        .weightKg(request.initialWeightKg())
+                        .recordDate(LocalDate.now())
+                        .build();
 
         bodyMeasurementRepository.save(initialMeasurement);
 
@@ -61,4 +68,3 @@ public class RegisterUserUseCaseImpl implements RegisterUserUseCase {
         return savedUser.getId();
     }
 }
-

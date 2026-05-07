@@ -5,5 +5,6 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 public interface GetUserVolumeSummaryUseCase {
-    List<VolumeSummaryResponseDto> execute(Long userId, LocalDateTime startDate, LocalDateTime endDate);
+    List<VolumeSummaryResponseDto> execute(
+            Long userId, LocalDateTime startDate, LocalDateTime endDate);
 }

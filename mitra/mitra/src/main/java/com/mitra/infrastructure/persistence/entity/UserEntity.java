@@ -3,11 +3,10 @@ package com.mitra.infrastructure.persistence.entity;
 import com.mitra.domain.model.enums.Gender;
 import com.mitra.domain.model.enums.Role;
 import jakarta.persistence.*;
-import lombok.*;
-
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
+import lombok.*;
 
 @Entity
 @Table(name = "users")

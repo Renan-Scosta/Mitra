@@ -8,6 +8,12 @@ import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import java.io.IOException;
+import java.time.Duration;
+import java.time.LocalDateTime;
+import java.util.LinkedHashMap;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
@@ -15,19 +21,12 @@ import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
-import java.io.IOException;
-import java.time.Duration;
-import java.time.LocalDateTime;
-import java.util.LinkedHashMap;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
-
 /**
  * Rate limiting filter that protects public endpoints against brute-force attacks.
  *
- * <p>Uses the Token Bucket algorithm (via Bucket4j) with per-IP isolation.
- * When the limit is exceeded, the filter writes a 429 response directly
- * (filters run before the DispatcherServlet, so @ControllerAdvice cannot catch filter exceptions).
+ * <p>Uses the Token Bucket algorithm (via Bucket4j) with per-IP isolation. When the limit is
+ * exceeded, the filter writes a 429 response directly (filters run before the DispatcherServlet,
+ * so @ControllerAdvice cannot catch filter exceptions).
  */
 @Slf4j
 @Component
@@ -51,7 +50,8 @@ public class RateLimitFilter extends OncePerRequestFilter {
     private int registerMinutes;
 
     @Override
-    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
+    protected void doFilterInternal(
+            HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
             throws ServletException, IOException {
 
         String path = request.getRequestURI();
@@ -76,11 +76,16 @@ public class RateLimitFilter extends OncePerRequestFilter {
         ConsumptionProbe probe = bucket.tryConsumeAndReturnRemaining(1);
 
         if (probe.isConsumed()) {
-            response.addHeader("X-Rate-Limit-Remaining", String.valueOf(probe.getRemainingTokens()));
+            response.addHeader(
+                    "X-Rate-Limit-Remaining", String.valueOf(probe.getRemainingTokens()));
             filterChain.doFilter(request, response);
         } else {
             long retryAfterSeconds = probe.getNanosToWaitForRefill() / 1_000_000_000 + 1;
-            log.warn("Rate limit exceeded for IP={} on path={} — retry after {}s", clientIp, path, retryAfterSeconds);
+            log.warn(
+                    "Rate limit exceeded for IP={} on path={} — retry after {}s",
+                    clientIp,
+                    path,
+                    retryAfterSeconds);
 
             response.setStatus(HttpStatus.TOO_MANY_REQUESTS.value());
             response.setContentType(MediaType.APPLICATION_JSON_VALUE);
@@ -91,7 +96,9 @@ public class RateLimitFilter extends OncePerRequestFilter {
             body.put("timestamp", LocalDateTime.now().toString());
             body.put("status", HttpStatus.TOO_MANY_REQUESTS.value());
             body.put("error", "Too Many Requests");
-            body.put("message", "Rate limit exceeded. Try again in " + retryAfterSeconds + " seconds.");
+            body.put(
+                    "message",
+                    "Rate limit exceeded. Try again in " + retryAfterSeconds + " seconds.");
 
             objectMapper.writeValue(response.getOutputStream(), body);
             // Do NOT call filterChain.doFilter — stop the request here
@@ -99,8 +106,8 @@ public class RateLimitFilter extends OncePerRequestFilter {
     }
 
     /**
-     * Resolves which bucket map to use based on the request path.
-     * Returns null if the path is not rate-limited.
+     * Resolves which bucket map to use based on the request path. Returns null if the path is not
+     * rate-limited.
      */
     private ConcurrentHashMap<String, Bucket> resolveBucketMap(String path) {
         if (path.equals("/api/v1/auth/login") || path.equals("/api/v1/auth/google")) {
@@ -112,13 +119,12 @@ public class RateLimitFilter extends OncePerRequestFilter {
         return null;
     }
 
-    /**
-     * Creates a new bucket with the appropriate configuration for the given path.
-     */
+    /** Creates a new bucket with the appropriate configuration for the given path. */
     private Bucket createBucket(String path) {
         if (path.equals("/api/v1/users")) {
             return Bucket.builder()
-                    .addLimit(Bandwidth.simple(registerRequests, Duration.ofMinutes(registerMinutes)))
+                    .addLimit(
+                            Bandwidth.simple(registerRequests, Duration.ofMinutes(registerMinutes)))
                     .build();
         }
         // Default: login/google endpoints
@@ -128,8 +134,8 @@ public class RateLimitFilter extends OncePerRequestFilter {
     }
 
     /**
-     * Resolves the client IP address, honoring the X-Forwarded-For header
-     * (set by reverse proxies like Nginx) with fallback to RemoteAddr.
+     * Resolves the client IP address, honoring the X-Forwarded-For header (set by reverse proxies
+     * like Nginx) with fallback to RemoteAddr.
      */
     String resolveClientIp(HttpServletRequest request) {
         String xForwardedFor = request.getHeader("X-Forwarded-For");
@@ -140,9 +146,7 @@ public class RateLimitFilter extends OncePerRequestFilter {
         return request.getRemoteAddr();
     }
 
-    /**
-     * Exposes bucket maps for testing purposes.
-     */
+    /** Exposes bucket maps for testing purposes. */
     ConcurrentHashMap<String, Bucket> getLoginBuckets() {
         return loginBuckets;
     }

@@ -11,8 +11,8 @@ import org.springframework.stereotype.Service;
 /**
  * Use case: calculates the Basal Metabolic Rate (BMR) for a given user.
  *
- * <p>Orchestrates the retrieval of the user profile and their latest body measurement,
- * then delegates the calculation to the {@link BmrCalculator} domain service.
+ * <p>Orchestrates the retrieval of the user profile and their latest body measurement, then
+ * delegates the calculation to the {@link BmrCalculator} domain service.
  */
 @Slf4j
 @Service
@@ -38,12 +38,19 @@ public class CalculateBmrUseCase {
      */
     public double execute(Long userId) {
         log.debug("Calculating BMR for userId={}", userId);
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new IllegalArgumentException("User not found: " + userId));
+        User user =
+                userRepository
+                        .findById(userId)
+                        .orElseThrow(
+                                () -> new IllegalArgumentException("User not found: " + userId));
 
-        BodyMeasurement latestMeasurement = bodyMeasurementRepository.findLatestByUserId(userId)
-                .orElseThrow(() -> new IllegalArgumentException(
-                        "No body measurement found for user: " + userId));
+        BodyMeasurement latestMeasurement =
+                bodyMeasurementRepository
+                        .findLatestByUserId(userId)
+                        .orElseThrow(
+                                () ->
+                                        new IllegalArgumentException(
+                                                "No body measurement found for user: " + userId));
 
         double bmr = bmrCalculator.calculate(user, latestMeasurement.getWeightKg());
         log.debug("BMR calculated for userId={}: {} kcal/day", userId, bmr);

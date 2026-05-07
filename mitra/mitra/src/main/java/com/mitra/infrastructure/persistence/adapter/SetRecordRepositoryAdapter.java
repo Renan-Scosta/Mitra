@@ -6,10 +6,9 @@ import com.mitra.infrastructure.persistence.mapper.SetRecordMapper;
 import com.mitra.infrastructure.persistence.repository.ExerciseJpaRepository;
 import com.mitra.infrastructure.persistence.repository.SetRecordJpaRepository;
 import com.mitra.infrastructure.persistence.repository.WorkoutSessionJpaRepository;
-import org.springframework.stereotype.Repository;
-
 import java.util.List;
 import java.util.stream.Collectors;
+import org.springframework.stereotype.Repository;
 
 @Repository
 public class SetRecordRepositoryAdapter implements SetRecordRepositoryPort {
@@ -43,12 +42,22 @@ public class SetRecordRepositoryAdapter implements SetRecordRepositoryPort {
 
     @Override
     public SetRecord save(SetRecord setRecord) {
-        var sessionEntity = sessionJpaRepository.findById(setRecord.getSessionId())
-                .orElseThrow(() -> new IllegalArgumentException(
-                        "Workout session not found: " + setRecord.getSessionId()));
-        var exerciseEntity = exerciseJpaRepository.findById(setRecord.getExercise().getId())
-                .orElseThrow(() -> new IllegalArgumentException(
-                        "Exercise not found: " + setRecord.getExercise().getId()));
+        var sessionEntity =
+                sessionJpaRepository
+                        .findById(setRecord.getSessionId())
+                        .orElseThrow(
+                                () ->
+                                        new IllegalArgumentException(
+                                                "Workout session not found: "
+                                                        + setRecord.getSessionId()));
+        var exerciseEntity =
+                exerciseJpaRepository
+                        .findById(setRecord.getExercise().getId())
+                        .orElseThrow(
+                                () ->
+                                        new IllegalArgumentException(
+                                                "Exercise not found: "
+                                                        + setRecord.getExercise().getId()));
         var entity = SetRecordMapper.toEntity(setRecord, sessionEntity, exerciseEntity);
         var saved = jpaRepository.save(entity);
         return SetRecordMapper.toDomain(saved);

@@ -4,12 +4,11 @@ import com.mitra.domain.model.enums.Gender;
 import com.mitra.domain.model.enums.Role;
 import com.mitra.infrastructure.persistence.entity.UserEntity;
 import com.mitra.infrastructure.persistence.repository.UserJpaRepository;
+import java.time.LocalDate;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Profile;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
-
-import java.time.LocalDate;
 
 @Component
 @Profile("!test")
@@ -26,30 +25,32 @@ public class DatabaseSeeder implements CommandLineRunner {
     @Override
     public void run(String... args) throws Exception {
         if (userRepository.findByEmail("dev@mitra.com").isEmpty()) {
-            UserEntity devUser = UserEntity.builder()
-                    .name("Dev Mitra")
-                    .email("dev@mitra.com")
-                    .password(passwordEncoder.encode("123456"))
-                    .birthDate(LocalDate.of(1990, 1, 1))
-                    .gender(Gender.MALE)
-                    .heightCm(180)
-                    .role(Role.ADMIN)
-                    .build();
-            
+            UserEntity devUser =
+                    UserEntity.builder()
+                            .name("Dev Mitra")
+                            .email("dev@mitra.com")
+                            .password(passwordEncoder.encode("123456"))
+                            .birthDate(LocalDate.of(1990, 1, 1))
+                            .gender(Gender.MALE)
+                            .heightCm(180)
+                            .role(Role.ADMIN)
+                            .build();
+
             userRepository.save(devUser);
         }
 
         if (userRepository.findByEmail("user@mitra.com").isEmpty()) {
-            UserEntity normalUser = UserEntity.builder()
-                    .name("Normal User")
-                    .email("user@mitra.com")
-                    .password(passwordEncoder.encode("123456"))
-                    .birthDate(LocalDate.of(1995, 5, 5))
-                    .gender(Gender.FEMALE)
-                    .heightCm(165)
-                    .role(Role.USER)
-                    .build();
-            
+            UserEntity normalUser =
+                    UserEntity.builder()
+                            .name("Normal User")
+                            .email("user@mitra.com")
+                            .password(passwordEncoder.encode("123456"))
+                            .birthDate(LocalDate.of(1995, 5, 5))
+                            .gender(Gender.FEMALE)
+                            .heightCm(165)
+                            .role(Role.USER)
+                            .build();
+
             userRepository.save(normalUser);
         }
     }

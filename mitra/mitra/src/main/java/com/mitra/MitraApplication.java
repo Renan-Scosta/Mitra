@@ -6,8 +6,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 @SpringBootApplication
 public class MitraApplication {
 
-	public static void main(String[] args) {
-		SpringApplication.run(MitraApplication.class, args);
-	}
-
+    public static void main(String[] args) {
+        SpringApplication.run(MitraApplication.class, args);
+    }
 }

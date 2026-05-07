@@ -19,16 +19,16 @@ public class CreateExerciseUseCaseImpl implements CreateExerciseUseCase {
 
     @Override
     public Long execute(CreateExerciseRequestDto request) {
-        Exercise exercise = Exercise.builder()
-                .name(request.name())
-                .muscleGroup(request.muscleGroup())
-                .metFactor(request.metFactor())
-                .trackingType(request.trackingType())
-                .build();
-                
+        Exercise exercise =
+                Exercise.builder()
+                        .name(request.name())
+                        .muscleGroup(request.muscleGroup())
+                        .metFactor(request.metFactor())
+                        .trackingType(request.trackingType())
+                        .build();
+
         Exercise savedExercise = exerciseRepositoryPort.save(exercise);
         log.info("Created exercise exerciseId={} name={}", savedExercise.getId(), request.name());
         return savedExercise.getId();
     }
 }
-

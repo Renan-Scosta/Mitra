@@ -13,20 +13,18 @@ public class CreateWorkoutRoutineUseCaseImpl implements CreateWorkoutRoutineUseC
 
     private final WorkoutRoutineRepositoryPort workoutRoutineRepositoryPort;
 
-    public CreateWorkoutRoutineUseCaseImpl(WorkoutRoutineRepositoryPort workoutRoutineRepositoryPort) {
+    public CreateWorkoutRoutineUseCaseImpl(
+            WorkoutRoutineRepositoryPort workoutRoutineRepositoryPort) {
         this.workoutRoutineRepositoryPort = workoutRoutineRepositoryPort;
     }
 
     @Override
     public Long execute(Long userId, CreateRoutineRequestDto request) {
-        WorkoutRoutine routine = WorkoutRoutine.builder()
-                .userId(userId)
-                .name(request.name())
-                .build();
-                
+        WorkoutRoutine routine =
+                WorkoutRoutine.builder().userId(userId).name(request.name()).build();
+
         WorkoutRoutine savedRoutine = workoutRoutineRepositoryPort.save(routine);
         log.info("Created routine routineId={} for userId={}", savedRoutine.getId(), userId);
         return savedRoutine.getId();
     }
 }
-

@@ -1,44 +1,49 @@
 package com.mitra.application.usecase.impl;
 
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.*;
+
 import com.mitra.application.port.out.WorkoutSessionRepositoryPort;
 import com.mitra.domain.model.Exercise;
 import com.mitra.domain.model.SetRecord;
 import com.mitra.domain.model.WorkoutSession;
 import com.mitra.presentation.dto.response.WorkoutSessionResponseDto;
+import java.math.BigDecimal;
+import java.time.LocalDateTime;
+import java.util.List;
+import java.util.Optional;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import java.math.BigDecimal;
-import java.time.LocalDateTime;
-import java.util.List;
-import java.util.Optional;
-
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.*;
-
 @ExtendWith(MockitoExtension.class)
 class GetWorkoutSessionUseCaseImplTest {
 
-    @Mock
-    private WorkoutSessionRepositoryPort workoutSessionRepositoryPort;
+    @Mock private WorkoutSessionRepositoryPort workoutSessionRepositoryPort;
 
-    @InjectMocks
-    private GetWorkoutSessionUseCaseImpl getWorkoutSessionUseCase;
+    @InjectMocks private GetWorkoutSessionUseCaseImpl getWorkoutSessionUseCase;
 
     @Test
     void shouldGetSessionDetails() {
         Long userId = 1L;
         Exercise exercise = Exercise.builder().id(5L).build();
-        SetRecord record = SetRecord.builder().id(30L).reps(10).weightKg(new BigDecimal("40.0")).exercise(exercise).build();
+        SetRecord record =
+                SetRecord.builder()
+                        .id(30L)
+                        .reps(10)
+                        .weightKg(new BigDecimal("40.0"))
+                        .exercise(exercise)
+                        .build();
 
-        WorkoutSession session = WorkoutSession.builder()
-                .id(100L).userId(userId)
-                .startTime(LocalDateTime.now())
-                .setRecords(List.of(record))
-                .build();
+        WorkoutSession session =
+                WorkoutSession.builder()
+                        .id(100L)
+                        .userId(userId)
+                        .startTime(LocalDateTime.now())
+                        .setRecords(List.of(record))
+                        .build();
 
         when(workoutSessionRepositoryPort.findById(100L)).thenReturn(Optional.of(session));
 
@@ -54,22 +59,24 @@ class GetWorkoutSessionUseCaseImplTest {
     @Test
     void shouldThrowExceptionWhenSessionNotFound() {
         when(workoutSessionRepositoryPort.findById(99L)).thenReturn(Optional.empty());
-        assertThrows(IllegalArgumentException.class,
-                () -> getWorkoutSessionUseCase.execute(1L, 99L));
+        assertThrows(
+                IllegalArgumentException.class, () -> getWorkoutSessionUseCase.execute(1L, 99L));
     }
 
     @Test
     void shouldThrowSecurityExceptionWhenUserDoesNotOwnSession() {
         Long ownerId = 1L;
         Long attackerId = 999L;
-        WorkoutSession session = WorkoutSession.builder()
-                .id(100L).userId(ownerId)
-                .startTime(LocalDateTime.now())
-                .build();
+        WorkoutSession session =
+                WorkoutSession.builder()
+                        .id(100L)
+                        .userId(ownerId)
+                        .startTime(LocalDateTime.now())
+                        .build();
 
         when(workoutSessionRepositoryPort.findById(100L)).thenReturn(Optional.of(session));
 
-        assertThrows(SecurityException.class,
-                () -> getWorkoutSessionUseCase.execute(attackerId, 100L));
+        assertThrows(
+                SecurityException.class, () -> getWorkoutSessionUseCase.execute(attackerId, 100L));
     }
 }

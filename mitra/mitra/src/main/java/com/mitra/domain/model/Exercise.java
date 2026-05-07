@@ -1,12 +1,11 @@
 package com.mitra.domain.model;
 
 import com.mitra.domain.model.enums.TrackingType;
+import java.math.BigDecimal;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-
-import java.math.BigDecimal;
 
 @Getter
 @Builder

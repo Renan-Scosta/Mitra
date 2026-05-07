@@ -1,5 +1,8 @@
 package com.mitra.application.usecase.impl;
 
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.*;
+
 import com.mitra.application.port.out.ExerciseRepositoryPort;
 import com.mitra.application.port.out.SetRecordRepositoryPort;
 import com.mitra.application.port.out.WorkoutSessionRepositoryPort;
@@ -7,48 +10,67 @@ import com.mitra.domain.model.Exercise;
 import com.mitra.domain.model.SetRecord;
 import com.mitra.domain.model.WorkoutSession;
 import com.mitra.presentation.dto.response.ExerciseHistoryResponseDto;
+import java.math.BigDecimal;
+import java.time.LocalDateTime;
+import java.util.List;
+import java.util.Optional;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import java.math.BigDecimal;
-import java.time.LocalDateTime;
-import java.util.List;
-import java.util.Optional;
-
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.*;
-
 @ExtendWith(MockitoExtension.class)
 class GetExerciseHistoryUseCaseImplTest {
 
-    @Mock
-    private ExerciseRepositoryPort exerciseRepositoryPort;
+    @Mock private ExerciseRepositoryPort exerciseRepositoryPort;
 
-    @Mock
-    private SetRecordRepositoryPort setRecordRepositoryPort;
+    @Mock private SetRecordRepositoryPort setRecordRepositoryPort;
 
-    @Mock
-    private WorkoutSessionRepositoryPort sessionRepositoryPort;
+    @Mock private WorkoutSessionRepositoryPort sessionRepositoryPort;
 
-    @InjectMocks
-    private GetExerciseHistoryUseCaseImpl useCase;
+    @InjectMocks private GetExerciseHistoryUseCaseImpl useCase;
 
     @Test
     void shouldReturnHistoryGroupedBySessionAndSortedDesc() {
         Exercise bench = Exercise.builder().id(5L).name("Bench Press").build();
-        
-        SetRecord s1 = SetRecord.builder().id(1L).sessionId(100L).weightKg(new BigDecimal("100")).reps(10).build();
-        SetRecord s2 = SetRecord.builder().id(2L).sessionId(100L).weightKg(new BigDecimal("100")).reps(8).build();
-        SetRecord s3 = SetRecord.builder().id(3L).sessionId(200L).weightKg(new BigDecimal("105")).reps(5).build();
 
-        WorkoutSession session1 = WorkoutSession.builder().id(100L).startTime(LocalDateTime.of(2026, 4, 1, 10, 0)).build();
-        WorkoutSession session2 = WorkoutSession.builder().id(200L).startTime(LocalDateTime.of(2026, 4, 5, 10, 0)).build(); // NEWER
+        SetRecord s1 =
+                SetRecord.builder()
+                        .id(1L)
+                        .sessionId(100L)
+                        .weightKg(new BigDecimal("100"))
+                        .reps(10)
+                        .build();
+        SetRecord s2 =
+                SetRecord.builder()
+                        .id(2L)
+                        .sessionId(100L)
+                        .weightKg(new BigDecimal("100"))
+                        .reps(8)
+                        .build();
+        SetRecord s3 =
+                SetRecord.builder()
+                        .id(3L)
+                        .sessionId(200L)
+                        .weightKg(new BigDecimal("105"))
+                        .reps(5)
+                        .build();
+
+        WorkoutSession session1 =
+                WorkoutSession.builder()
+                        .id(100L)
+                        .startTime(LocalDateTime.of(2026, 4, 1, 10, 0))
+                        .build();
+        WorkoutSession session2 =
+                WorkoutSession.builder()
+                        .id(200L)
+                        .startTime(LocalDateTime.of(2026, 4, 5, 10, 0))
+                        .build(); // NEWER
 
         when(exerciseRepositoryPort.findById(5L)).thenReturn(Optional.of(bench));
-        when(setRecordRepositoryPort.findByUserIdAndExerciseId(1L, 5L)).thenReturn(List.of(s1, s2, s3));
+        when(setRecordRepositoryPort.findByUserIdAndExerciseId(1L, 5L))
+                .thenReturn(List.of(s1, s2, s3));
         when(sessionRepositoryPort.findById(100L)).thenReturn(Optional.of(session1));
         when(sessionRepositoryPort.findById(200L)).thenReturn(Optional.of(session2));
 
@@ -77,7 +99,7 @@ class GetExerciseHistoryUseCaseImplTest {
         when(setRecordRepositoryPort.findByUserIdAndExerciseId(1L, 5L)).thenReturn(List.of());
 
         ExerciseHistoryResponseDto response = useCase.execute(1L, 5L);
-        
+
         assertNotNull(response);
         assertTrue(response.sessions().isEmpty());
     }

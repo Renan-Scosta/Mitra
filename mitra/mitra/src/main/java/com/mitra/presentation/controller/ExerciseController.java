@@ -13,6 +13,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+import java.net.URI;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
@@ -20,8 +21,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
-
-import java.net.URI;
 
 @Tag(name = "Exercises", description = "Endpoints for managing the exercise catalog")
 @RestController
@@ -33,27 +32,33 @@ public class ExerciseController {
     private final GetExerciseHistoryUseCase getExerciseHistoryUseCase;
     private final GetPersonalRecordsUseCase getPersonalRecordsUseCase;
 
-    public ExerciseController(CreateExerciseUseCase createExerciseUseCase, 
-                              GetAllExercisesUseCase getAllExercisesUseCase,
-                              GetExerciseHistoryUseCase getExerciseHistoryUseCase,
-                              GetPersonalRecordsUseCase getPersonalRecordsUseCase) {
+    public ExerciseController(
+            CreateExerciseUseCase createExerciseUseCase,
+            GetAllExercisesUseCase getAllExercisesUseCase,
+            GetExerciseHistoryUseCase getExerciseHistoryUseCase,
+            GetPersonalRecordsUseCase getPersonalRecordsUseCase) {
         this.createExerciseUseCase = createExerciseUseCase;
         this.getAllExercisesUseCase = getAllExercisesUseCase;
         this.getExerciseHistoryUseCase = getExerciseHistoryUseCase;
         this.getPersonalRecordsUseCase = getPersonalRecordsUseCase;
     }
 
-    @Operation(summary = "Register a new exercise", description = "Creates a new exercise in the catalog")
+    @Operation(
+            summary = "Register a new exercise",
+            description = "Creates a new exercise in the catalog")
     @ApiResponse(responseCode = "201", description = "Exercise successfully created")
     @ApiResponse(responseCode = "400", description = "Invalid request data")
     @PreAuthorize("hasRole('ADMIN')")
     @PostMapping
-    public ResponseEntity<Void> createExercise(@Valid @RequestBody CreateExerciseRequestDto request) {
+    public ResponseEntity<Void> createExercise(
+            @Valid @RequestBody CreateExerciseRequestDto request) {
         Long exerciseId = createExerciseUseCase.execute(request);
         return ResponseEntity.created(URI.create("/api/v1/exercises/" + exerciseId)).build();
     }
 
-    @Operation(summary = "Get all exercises", description = "Retrieves the full catalog of available exercises")
+    @Operation(
+            summary = "Get all exercises",
+            description = "Retrieves the full catalog of available exercises")
     @ApiResponse(responseCode = "200", description = "Catalog retrieved successfully")
     @GetMapping
     public ResponseEntity<Page<ExerciseResponseDto>> getAllExercises(
@@ -62,24 +67,28 @@ public class ExerciseController {
         return ResponseEntity.ok(exercises);
     }
 
-    @Operation(summary = "Get exercise history", description = "Retrieves the user's history for an exercise grouped by session")
+    @Operation(
+            summary = "Get exercise history",
+            description = "Retrieves the user's history for an exercise grouped by session")
     @ApiResponse(responseCode = "200", description = "History retrieved successfully")
     @GetMapping("/{exerciseId}/history")
     public ResponseEntity<ExerciseHistoryResponseDto> getExerciseHistory(
-            @PathVariable Long exerciseId,
-            @AuthenticationPrincipal User currentUser) {
-        ExerciseHistoryResponseDto response = getExerciseHistoryUseCase.execute(currentUser.getId(), exerciseId);
+            @PathVariable Long exerciseId, @AuthenticationPrincipal User currentUser) {
+        ExerciseHistoryResponseDto response =
+                getExerciseHistoryUseCase.execute(currentUser.getId(), exerciseId);
         return ResponseEntity.ok(response);
     }
 
-    @Operation(summary = "Get personal records", description = "Calculates personal records for the user in the specified exercise")
+    @Operation(
+            summary = "Get personal records",
+            description = "Calculates personal records for the user in the specified exercise")
     @ApiResponse(responseCode = "200", description = "PRs retrieved successfully")
     @ApiResponse(responseCode = "404", description = "No sets logged for this exercise")
     @GetMapping("/{exerciseId}/records")
     public ResponseEntity<PersonalRecordResponseDto> getPersonalRecords(
-            @PathVariable Long exerciseId,
-            @AuthenticationPrincipal User currentUser) {
-        PersonalRecordResponseDto response = getPersonalRecordsUseCase.execute(currentUser.getId(), exerciseId);
+            @PathVariable Long exerciseId, @AuthenticationPrincipal User currentUser) {
+        PersonalRecordResponseDto response =
+                getPersonalRecordsUseCase.execute(currentUser.getId(), exerciseId);
         return ResponseEntity.ok(response);
     }
 }

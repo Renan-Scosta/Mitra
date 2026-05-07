@@ -1,5 +1,9 @@
 package com.mitra.application.usecase.impl;
 
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.*;
+
 import com.mitra.application.port.out.ExerciseRepositoryPort;
 import com.mitra.application.port.out.SetRecordRepositoryPort;
 import com.mitra.application.port.out.WorkoutSessionRepositoryPort;
@@ -9,34 +13,25 @@ import com.mitra.domain.model.WorkoutSession;
 import com.mitra.domain.model.enums.TrackingType;
 import com.mitra.presentation.dto.request.LogSetRequestDto;
 import com.mitra.presentation.dto.response.SetRecordResponseDto;
+import java.math.BigDecimal;
+import java.time.LocalDateTime;
+import java.util.Optional;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import java.math.BigDecimal;
-import java.time.LocalDateTime;
-import java.util.Optional;
-
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.*;
-
 @ExtendWith(MockitoExtension.class)
 class LogSetRecordUseCaseImplTest {
 
-    @Mock
-    private WorkoutSessionRepositoryPort workoutSessionRepositoryPort;
+    @Mock private WorkoutSessionRepositoryPort workoutSessionRepositoryPort;
 
-    @Mock
-    private ExerciseRepositoryPort exerciseRepositoryPort;
+    @Mock private ExerciseRepositoryPort exerciseRepositoryPort;
 
-    @Mock
-    private SetRecordRepositoryPort setRecordRepositoryPort;
+    @Mock private SetRecordRepositoryPort setRecordRepositoryPort;
 
-    @InjectMocks
-    private LogSetRecordUseCaseImpl logSetRecordUseCase;
+    @InjectMocks private LogSetRecordUseCaseImpl logSetRecordUseCase;
 
     @Test
     void shouldLogSetSuccessfully() {
@@ -44,18 +39,29 @@ class LogSetRecordUseCaseImplTest {
         Long sessionId = 100L;
         LogSetRequestDto request = new LogSetRequestDto(5L, new BigDecimal("40.0"), 10, null);
 
-        WorkoutSession session = WorkoutSession.builder()
-                .id(sessionId).userId(userId).startTime(LocalDateTime.now()).build();
-        Exercise exercise = Exercise.builder().id(5L).trackingType(TrackingType.WEIGHT_REPS).build();
+        WorkoutSession session =
+                WorkoutSession.builder()
+                        .id(sessionId)
+                        .userId(userId)
+                        .startTime(LocalDateTime.now())
+                        .build();
+        Exercise exercise =
+                Exercise.builder().id(5L).trackingType(TrackingType.WEIGHT_REPS).build();
 
         when(workoutSessionRepositoryPort.findById(sessionId)).thenReturn(Optional.of(session));
         when(exerciseRepositoryPort.findById(5L)).thenReturn(Optional.of(exercise));
-        when(setRecordRepositoryPort.save(any(SetRecord.class))).thenAnswer(i -> {
-            SetRecord s = i.getArgument(0);
-            return SetRecord.builder()
-                    .id(30L).sessionId(s.getSessionId()).exercise(s.getExercise())
-                    .weightKg(s.getWeightKg()).reps(s.getReps()).build();
-        });
+        when(setRecordRepositoryPort.save(any(SetRecord.class)))
+                .thenAnswer(
+                        i -> {
+                            SetRecord s = i.getArgument(0);
+                            return SetRecord.builder()
+                                    .id(30L)
+                                    .sessionId(s.getSessionId())
+                                    .exercise(s.getExercise())
+                                    .weightKg(s.getWeightKg())
+                                    .reps(s.getReps())
+                                    .build();
+                        });
 
         SetRecordResponseDto response = logSetRecordUseCase.execute(userId, sessionId, request);
 
@@ -72,23 +78,26 @@ class LogSetRecordUseCaseImplTest {
         LogSetRequestDto request = new LogSetRequestDto(5L, new BigDecimal("40.0"), 10, null);
         when(workoutSessionRepositoryPort.findById(99L)).thenReturn(Optional.empty());
 
-        assertThrows(IllegalArgumentException.class,
+        assertThrows(
+                IllegalArgumentException.class,
                 () -> logSetRecordUseCase.execute(1L, 99L, request));
     }
 
     @Test
     void shouldThrowExceptionWhenSessionIsNotActive() {
         LogSetRequestDto request = new LogSetRequestDto(5L, new BigDecimal("40.0"), 10, null);
-        WorkoutSession session = WorkoutSession.builder()
-                .id(100L).userId(1L)
-                .startTime(LocalDateTime.now().minusHours(1))
-                .endTime(LocalDateTime.now())
-                .build();
+        WorkoutSession session =
+                WorkoutSession.builder()
+                        .id(100L)
+                        .userId(1L)
+                        .startTime(LocalDateTime.now().minusHours(1))
+                        .endTime(LocalDateTime.now())
+                        .build();
 
         when(workoutSessionRepositoryPort.findById(100L)).thenReturn(Optional.of(session));
 
-        assertThrows(IllegalStateException.class,
-                () -> logSetRecordUseCase.execute(1L, 100L, request));
+        assertThrows(
+                IllegalStateException.class, () -> logSetRecordUseCase.execute(1L, 100L, request));
     }
 
     @Test
@@ -98,12 +107,17 @@ class LogSetRecordUseCaseImplTest {
         Long sessionId = 100L;
         LogSetRequestDto request = new LogSetRequestDto(5L, new BigDecimal("40.0"), 10, null);
 
-        WorkoutSession session = WorkoutSession.builder()
-                .id(sessionId).userId(ownerId).startTime(LocalDateTime.now()).build();
+        WorkoutSession session =
+                WorkoutSession.builder()
+                        .id(sessionId)
+                        .userId(ownerId)
+                        .startTime(LocalDateTime.now())
+                        .build();
 
         when(workoutSessionRepositoryPort.findById(sessionId)).thenReturn(Optional.of(session));
 
-        assertThrows(SecurityException.class,
+        assertThrows(
+                SecurityException.class,
                 () -> logSetRecordUseCase.execute(attackerId, sessionId, request));
         verify(setRecordRepositoryPort, never()).save(any());
     }

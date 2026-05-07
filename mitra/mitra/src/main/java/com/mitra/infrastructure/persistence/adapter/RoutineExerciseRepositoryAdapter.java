@@ -6,10 +6,9 @@ import com.mitra.infrastructure.persistence.mapper.RoutineExerciseMapper;
 import com.mitra.infrastructure.persistence.repository.ExerciseJpaRepository;
 import com.mitra.infrastructure.persistence.repository.RoutineExerciseJpaRepository;
 import com.mitra.infrastructure.persistence.repository.WorkoutRoutineJpaRepository;
-import org.springframework.stereotype.Repository;
-
 import java.util.List;
 import java.util.stream.Collectors;
+import org.springframework.stereotype.Repository;
 
 @Repository
 public class RoutineExerciseRepositoryAdapter implements RoutineExerciseRepositoryPort {
@@ -36,12 +35,22 @@ public class RoutineExerciseRepositoryAdapter implements RoutineExerciseReposito
 
     @Override
     public RoutineExercise save(RoutineExercise routineExercise) {
-        var routineEntity = routineJpaRepository.findById(routineExercise.getRoutineId())
-                .orElseThrow(() -> new IllegalArgumentException(
-                        "Workout routine not found: " + routineExercise.getRoutineId()));
-        var exerciseEntity = exerciseJpaRepository.findById(routineExercise.getExercise().getId())
-                .orElseThrow(() -> new IllegalArgumentException(
-                        "Exercise not found: " + routineExercise.getExercise().getId()));
+        var routineEntity =
+                routineJpaRepository
+                        .findById(routineExercise.getRoutineId())
+                        .orElseThrow(
+                                () ->
+                                        new IllegalArgumentException(
+                                                "Workout routine not found: "
+                                                        + routineExercise.getRoutineId()));
+        var exerciseEntity =
+                exerciseJpaRepository
+                        .findById(routineExercise.getExercise().getId())
+                        .orElseThrow(
+                                () ->
+                                        new IllegalArgumentException(
+                                                "Exercise not found: "
+                                                        + routineExercise.getExercise().getId()));
         var entity = RoutineExerciseMapper.toEntity(routineExercise, routineEntity, exerciseEntity);
         var saved = jpaRepository.save(entity);
         return RoutineExerciseMapper.toDomain(saved);

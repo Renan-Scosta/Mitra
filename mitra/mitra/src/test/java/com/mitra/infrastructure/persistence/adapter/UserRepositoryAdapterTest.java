@@ -1,27 +1,24 @@
 package com.mitra.infrastructure.persistence.adapter;
 
-import com.mitra.infrastructure.persistence.AbstractIntegrationTest;
+import static org.junit.jupiter.api.Assertions.*;
 
 import com.mitra.domain.model.User;
 import com.mitra.domain.model.enums.Gender;
+import com.mitra.infrastructure.persistence.AbstractIntegrationTest;
 import com.mitra.infrastructure.persistence.repository.UserJpaRepository;
+import java.time.LocalDate;
+import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.data.jpa.test.autoconfigure.DataJpaTest;
 import org.springframework.test.context.ActiveProfiles;
 
-import java.time.LocalDate;
-import java.util.Optional;
-
-import static org.junit.jupiter.api.Assertions.*;
-
 @DataJpaTest
 @ActiveProfiles("test")
 class UserRepositoryAdapterTest extends AbstractIntegrationTest {
 
-    @Autowired
-    private UserJpaRepository userJpaRepository;
+    @Autowired private UserJpaRepository userJpaRepository;
 
     private UserRepositoryAdapter adapter;
 
@@ -32,14 +29,15 @@ class UserRepositoryAdapterTest extends AbstractIntegrationTest {
 
     @Test
     void shouldSaveAndFindUserById() {
-        User user = User.builder()
-                .email("test@mitra.com")
-                .name("Test User")
-                .password("hashed_password")
-                .birthDate(LocalDate.of(2000, 1, 15))
-                .gender(Gender.MALE)
-                .heightCm(180)
-                .build();
+        User user =
+                User.builder()
+                        .email("test@mitra.com")
+                        .name("Test User")
+                        .password("hashed_password")
+                        .birthDate(LocalDate.of(2000, 1, 15))
+                        .gender(Gender.MALE)
+                        .heightCm(180)
+                        .build();
 
         User saved = adapter.save(user);
 

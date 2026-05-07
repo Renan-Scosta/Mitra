@@ -4,5 +4,4 @@ public record DashboardResponseDto(
         int workoutsThisWeek,
         int currentStreak,
         double totalCaloriesThisWeek,
-        WorkoutSessionResponseDto lastWorkout
-) {}
+        WorkoutSessionResponseDto lastWorkout) {}

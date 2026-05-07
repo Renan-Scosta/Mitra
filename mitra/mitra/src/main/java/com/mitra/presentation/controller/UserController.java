@@ -1,13 +1,12 @@
 package com.mitra.presentation.controller;
 
 import com.mitra.application.usecase.CalculateBmrUseCase;
-import com.mitra.application.usecase.RegisterUserUseCase;
-import com.mitra.application.usecase.UpdateUserProfileUseCase;
-import com.mitra.application.usecase.UpdateUserPasswordUseCase;
 import com.mitra.application.usecase.DeleteUserAccountUseCase;
 import com.mitra.application.usecase.GetUserDashboardUseCase;
 import com.mitra.application.usecase.GetUserVolumeSummaryUseCase;
-import com.mitra.application.usecase.GetBodyMeasurementsUseCase;
+import com.mitra.application.usecase.RegisterUserUseCase;
+import com.mitra.application.usecase.UpdateUserPasswordUseCase;
+import com.mitra.application.usecase.UpdateUserProfileUseCase;
 import com.mitra.domain.model.User;
 import com.mitra.presentation.dto.request.CreateUserRequestDto;
 import com.mitra.presentation.dto.request.UpdateUserPasswordRequestDto;
@@ -20,14 +19,13 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
-import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.web.bind.annotation.*;
-
 import java.net.URI;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.web.bind.annotation.*;
 
 @Tag(name = "Users", description = "Endpoints for user management and baseline body metrics")
 @RestController
@@ -42,13 +40,14 @@ public class UserController {
     private final GetUserDashboardUseCase getUserDashboardUseCase;
     private final GetUserVolumeSummaryUseCase getUserVolumeSummaryUseCase;
 
-    public UserController(CalculateBmrUseCase calculateBmrUseCase,
-                          RegisterUserUseCase registerUserUseCase,
-                          UpdateUserProfileUseCase updateUserProfileUseCase,
-                          UpdateUserPasswordUseCase updateUserPasswordUseCase,
-                          DeleteUserAccountUseCase deleteUserAccountUseCase,
-                          GetUserDashboardUseCase getUserDashboardUseCase,
-                          GetUserVolumeSummaryUseCase getUserVolumeSummaryUseCase) {
+    public UserController(
+            CalculateBmrUseCase calculateBmrUseCase,
+            RegisterUserUseCase registerUserUseCase,
+            UpdateUserProfileUseCase updateUserProfileUseCase,
+            UpdateUserPasswordUseCase updateUserPasswordUseCase,
+            DeleteUserAccountUseCase deleteUserAccountUseCase,
+            GetUserDashboardUseCase getUserDashboardUseCase,
+            GetUserVolumeSummaryUseCase getUserVolumeSummaryUseCase) {
         this.calculateBmrUseCase = calculateBmrUseCase;
         this.registerUserUseCase = registerUserUseCase;
         this.updateUserProfileUseCase = updateUserProfileUseCase;
@@ -58,7 +57,9 @@ public class UserController {
         this.getUserVolumeSummaryUseCase = getUserVolumeSummaryUseCase;
     }
 
-    @Operation(summary = "Register a new user", description = "Creates a new user in the database with the initial information")
+    @Operation(
+            summary = "Register a new user",
+            description = "Creates a new user in the database with the initial information")
     @ApiResponse(responseCode = "201", description = "User successfully created")
     @ApiResponse(responseCode = "400", description = "Invalid request data")
     @PostMapping
@@ -71,7 +72,11 @@ public class UserController {
         return ResponseEntity.created(URI.create("/api/v1/users/" + userId)).build();
     }
 
-    @Operation(summary = "Calculate my BMR", description = "Calculates the current Basal Metabolic Rate based on the Mifflin-St Jeor formula using the last recorded weight for the authenticated user")
+    @Operation(
+            summary = "Calculate my BMR",
+            description =
+                    "Calculates the current Basal Metabolic Rate based on the Mifflin-St Jeor"
+                            + " formula using the last recorded weight for the authenticated user")
     @ApiResponse(responseCode = "200", description = "Calculation completed successfully")
     @ApiResponse(responseCode = "404", description = "User not found")
     @GetMapping("/me/bmr")
@@ -81,7 +86,11 @@ public class UserController {
         return ResponseEntity.ok(response);
     }
 
-    @Operation(summary = "Update user profile", description = "Updates basic user profile information like name, birth date, gender, and height")
+    @Operation(
+            summary = "Update user profile",
+            description =
+                    "Updates basic user profile information like name, birth date, gender, and"
+                            + " height")
     @ApiResponse(responseCode = "200", description = "Profile updated successfully")
     @ApiResponse(responseCode = "400", description = "Invalid request data")
     @PutMapping("/me")
@@ -92,9 +101,15 @@ public class UserController {
         return ResponseEntity.ok(response);
     }
 
-    @Operation(summary = "Change password", description = "Changes the user password. Requires the current password for security verification.")
+    @Operation(
+            summary = "Change password",
+            description =
+                    "Changes the user password. Requires the current password for security"
+                            + " verification.")
     @ApiResponse(responseCode = "204", description = "Password changed successfully")
-    @ApiResponse(responseCode = "400", description = "Invalid request data or passwords do not match")
+    @ApiResponse(
+            responseCode = "400",
+            description = "Invalid request data or passwords do not match")
     @ApiResponse(responseCode = "403", description = "Current password is incorrect")
     @PutMapping("/me/password")
     public ResponseEntity<Void> updatePassword(
@@ -104,7 +119,10 @@ public class UserController {
         return ResponseEntity.noContent().build();
     }
 
-    @Operation(summary = "Delete my account", description = "Permanently deletes the authenticated user's account and all associated data.")
+    @Operation(
+            summary = "Delete my account",
+            description =
+                    "Permanently deletes the authenticated user's account and all associated data.")
     @ApiResponse(responseCode = "204", description = "Account deleted successfully")
     @DeleteMapping("/me")
     public ResponseEntity<Void> deleteAccount(@AuthenticationPrincipal User currentUser) {
@@ -112,25 +130,36 @@ public class UserController {
         return ResponseEntity.noContent().build();
     }
 
-    @Operation(summary = "Get User Dashboard", description = "Retrieves high-level summary statistics including current streak, workouts this week, calories, and latest session data.")
+    @Operation(
+            summary = "Get User Dashboard",
+            description =
+                    "Retrieves high-level summary statistics including current streak, workouts"
+                            + " this week, calories, and latest session data.")
     @ApiResponse(responseCode = "200", description = "Dashboard retrieved successfully")
     @GetMapping("/me/dashboard")
-    public ResponseEntity<DashboardResponseDto> getDashboard(@AuthenticationPrincipal User currentUser) {
+    public ResponseEntity<DashboardResponseDto> getDashboard(
+            @AuthenticationPrincipal User currentUser) {
         var response = getUserDashboardUseCase.execute(currentUser.getId());
         return ResponseEntity.ok(response);
     }
 
-    @Operation(summary = "Get Volume Summary", description = "Retrieves the total lifted volume per muscle group across a specified date range.")
+    @Operation(
+            summary = "Get Volume Summary",
+            description =
+                    "Retrieves the total lifted volume per muscle group across a specified date"
+                            + " range.")
     @ApiResponse(responseCode = "200", description = "Volume summary retrieved successfully")
     @GetMapping("/me/volume-summary")
     public ResponseEntity<List<VolumeSummaryResponseDto>> getVolumeSummary(
             @AuthenticationPrincipal User currentUser,
-            @RequestParam(defaultValue = "#{T(java.time.LocalDate).now().minusDays(7).toString()}") String startDate,
-            @RequestParam(defaultValue = "#{T(java.time.LocalDate).now().toString()}") String endDate) {
-        
+            @RequestParam(defaultValue = "#{T(java.time.LocalDate).now().minusDays(7).toString()}")
+                    String startDate,
+            @RequestParam(defaultValue = "#{T(java.time.LocalDate).now().toString()}")
+                    String endDate) {
+
         LocalDateTime start = LocalDate.parse(startDate).atStartOfDay();
         LocalDateTime end = LocalDate.parse(endDate).atTime(23, 59, 59);
-        
+
         var response = getUserVolumeSummaryUseCase.execute(currentUser.getId(), start, end);
         return ResponseEntity.ok(response);
     }

@@ -10,5 +10,4 @@ public record UserProfileResponseDto(
         LocalDate birthDate,
         Gender gender,
         int heightCm,
-        int age
-) {}
+        int age) {}

@@ -1,30 +1,26 @@
 package com.mitra.application.usecase.impl;
 
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.*;
+
 import com.mitra.application.port.out.GoogleTokenVerifierPort;
 import com.mitra.application.port.out.UserRepositoryPort;
 import com.mitra.domain.model.User;
 import com.mitra.infrastructure.security.TokenService;
+import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.mockito.ArgumentCaptor;
-
-import java.util.Optional;
-
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class GoogleLoginUseCaseImplTest {
 
-    @Mock
-    private GoogleTokenVerifierPort tokenVerifierPort;
-    @Mock
-    private UserRepositoryPort userRepositoryPort;
-    @Mock
-    private TokenService tokenService;
+    @Mock private GoogleTokenVerifierPort tokenVerifierPort;
+    @Mock private UserRepositoryPort userRepositoryPort;
+    @Mock private TokenService tokenService;
 
     private GoogleLoginUseCaseImpl useCase;
 
@@ -63,10 +59,10 @@ class GoogleLoginUseCaseImplTest {
         String result = useCase.execute(idToken);
 
         assertEquals("new-jwt-token", result);
-        
+
         ArgumentCaptor<User> userCaptor = ArgumentCaptor.forClass(User.class);
         verify(userRepositoryPort).save(userCaptor.capture());
-        
+
         User capturedParams = userCaptor.getValue();
         assertEquals(email, capturedParams.getEmail());
         assertEquals("newuser", capturedParams.getName());
@@ -79,7 +75,7 @@ class GoogleLoginUseCaseImplTest {
         when(tokenVerifierPort.verifyToken(idToken)).thenReturn(Optional.empty());
 
         assertThrows(IllegalArgumentException.class, () -> useCase.execute(idToken));
-        
+
         verify(userRepositoryPort, never()).findByEmail(any());
     }
 }

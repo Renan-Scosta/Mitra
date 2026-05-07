@@ -1,24 +1,24 @@
 package com.mitra.domain.model;
 
-import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.Optional;
-
-import static org.junit.jupiter.api.Assertions.*;
+import org.junit.jupiter.api.Test;
 
 class BodyMeasurementTest {
 
     @Test
     void shouldCalculateLeanMass() {
-        BodyMeasurement measurement = BodyMeasurement.builder()
-                .id(1L)
-                .userId(1L)
-                .weightKg(new BigDecimal("80.00"))
-                .bodyFatPercentage(new BigDecimal("20.00"))
-                .recordDate(LocalDate.now())
-                .build();
+        BodyMeasurement measurement =
+                BodyMeasurement.builder()
+                        .id(1L)
+                        .userId(1L)
+                        .weightKg(new BigDecimal("80.00"))
+                        .bodyFatPercentage(new BigDecimal("20.00"))
+                        .recordDate(LocalDate.now())
+                        .build();
 
         Optional<BigDecimal> leanMass = measurement.getLeanMass();
 
@@ -28,13 +28,14 @@ class BodyMeasurementTest {
 
     @Test
     void shouldCalculateFatMass() {
-        BodyMeasurement measurement = BodyMeasurement.builder()
-                .id(1L)
-                .userId(1L)
-                .weightKg(new BigDecimal("80.00"))
-                .bodyFatPercentage(new BigDecimal("20.00"))
-                .recordDate(LocalDate.now())
-                .build();
+        BodyMeasurement measurement =
+                BodyMeasurement.builder()
+                        .id(1L)
+                        .userId(1L)
+                        .weightKg(new BigDecimal("80.00"))
+                        .bodyFatPercentage(new BigDecimal("20.00"))
+                        .recordDate(LocalDate.now())
+                        .build();
 
         Optional<BigDecimal> fatMass = measurement.getFatMass();
 
@@ -44,29 +45,28 @@ class BodyMeasurementTest {
 
     @Test
     void shouldReturnEmptyLeanMassWhenBodyFatIsNull() {
-        BodyMeasurement measurement = BodyMeasurement.builder()
-                .weightKg(new BigDecimal("80.00"))
-                .build();
+        BodyMeasurement measurement =
+                BodyMeasurement.builder().weightKg(new BigDecimal("80.00")).build();
 
         assertTrue(measurement.getLeanMass().isEmpty());
     }
 
     @Test
     void shouldReturnEmptyFatMassWhenBodyFatIsNull() {
-        BodyMeasurement measurement = BodyMeasurement.builder()
-                .weightKg(new BigDecimal("80.00"))
-                .build();
+        BodyMeasurement measurement =
+                BodyMeasurement.builder().weightKg(new BigDecimal("80.00")).build();
 
         assertTrue(measurement.getFatMass().isEmpty());
     }
 
     @Test
     void shouldHandleHighBodyFatPercentage() {
-        BodyMeasurement measurement = BodyMeasurement.builder()
-                .weightKg(new BigDecimal("100.00"))
-                .bodyFatPercentage(new BigDecimal("35.50"))
-                .recordDate(LocalDate.now())
-                .build();
+        BodyMeasurement measurement =
+                BodyMeasurement.builder()
+                        .weightKg(new BigDecimal("100.00"))
+                        .bodyFatPercentage(new BigDecimal("35.50"))
+                        .recordDate(LocalDate.now())
+                        .build();
 
         Optional<BigDecimal> leanMass = measurement.getLeanMass();
         Optional<BigDecimal> fatMass = measurement.getFatMass();

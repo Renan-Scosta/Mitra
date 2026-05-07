@@ -6,14 +6,13 @@ import com.mitra.infrastructure.persistence.mapper.WorkoutSessionMapper;
 import com.mitra.infrastructure.persistence.repository.UserJpaRepository;
 import com.mitra.infrastructure.persistence.repository.WorkoutRoutineJpaRepository;
 import com.mitra.infrastructure.persistence.repository.WorkoutSessionJpaRepository;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
-import org.springframework.stereotype.Repository;
-
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.stereotype.Repository;
 
 @Repository
 public class WorkoutSessionRepositoryAdapter implements WorkoutSessionRepositoryPort {
@@ -33,8 +32,7 @@ public class WorkoutSessionRepositoryAdapter implements WorkoutSessionRepository
 
     @Override
     public Optional<WorkoutSession> findById(Long id) {
-        return jpaRepository.findById(id)
-                .map(WorkoutSessionMapper::toDomain);
+        return jpaRepository.findById(id).map(WorkoutSessionMapper::toDomain);
     }
 
     @Override
@@ -45,25 +43,37 @@ public class WorkoutSessionRepositoryAdapter implements WorkoutSessionRepository
     }
 
     @Override
-    public Page<WorkoutSession> findByUserIdAndDateRange(Long userId, LocalDateTime start, LocalDateTime end, Pageable pageable) {
-        return jpaRepository.findByUserIdAndStartTimeBetween(userId, start, end, pageable)
+    public Page<WorkoutSession> findByUserIdAndDateRange(
+            Long userId, LocalDateTime start, LocalDateTime end, Pageable pageable) {
+        return jpaRepository
+                .findByUserIdAndStartTimeBetween(userId, start, end, pageable)
                 .map(WorkoutSessionMapper::toDomain);
     }
 
     @Override
     public Optional<WorkoutSession> findActiveByUserId(Long userId) {
-        return jpaRepository.findByUserIdAndEndTimeIsNull(userId)
+        return jpaRepository
+                .findByUserIdAndEndTimeIsNull(userId)
                 .map(WorkoutSessionMapper::toDomain);
     }
 
     @Override
     public WorkoutSession save(WorkoutSession session) {
-        var userEntity = userJpaRepository.findById(session.getUserId())
-                .orElseThrow(() -> new IllegalArgumentException(
-                        "User not found: " + session.getUserId()));
-        var routineEntity = routineJpaRepository.findById(session.getRoutineId())
-                .orElseThrow(() -> new IllegalArgumentException(
-                        "Workout routine not found: " + session.getRoutineId()));
+        var userEntity =
+                userJpaRepository
+                        .findById(session.getUserId())
+                        .orElseThrow(
+                                () ->
+                                        new IllegalArgumentException(
+                                                "User not found: " + session.getUserId()));
+        var routineEntity =
+                routineJpaRepository
+                        .findById(session.getRoutineId())
+                        .orElseThrow(
+                                () ->
+                                        new IllegalArgumentException(
+                                                "Workout routine not found: "
+                                                        + session.getRoutineId()));
         var entity = WorkoutSessionMapper.toEntity(session, userEntity, routineEntity);
         var saved = jpaRepository.save(entity);
         return WorkoutSessionMapper.toDomain(saved);

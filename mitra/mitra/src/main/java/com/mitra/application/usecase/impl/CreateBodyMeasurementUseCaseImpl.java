@@ -13,18 +13,20 @@ public class CreateBodyMeasurementUseCaseImpl implements CreateBodyMeasurementUs
 
     private final BodyMeasurementRepositoryPort bodyMeasurementRepositoryPort;
 
-    public CreateBodyMeasurementUseCaseImpl(BodyMeasurementRepositoryPort bodyMeasurementRepositoryPort) {
+    public CreateBodyMeasurementUseCaseImpl(
+            BodyMeasurementRepositoryPort bodyMeasurementRepositoryPort) {
         this.bodyMeasurementRepositoryPort = bodyMeasurementRepositoryPort;
     }
 
     @Override
     public Long execute(Long userId, CreateBodyMeasurementRequestDto request) {
-        BodyMeasurement measurement = BodyMeasurement.builder()
-                .userId(userId)
-                .weightKg(request.weightKg())
-                .bodyFatPercentage(request.bodyFatPercentage())
-                .recordDate(request.recordDate())
-                .build();
+        BodyMeasurement measurement =
+                BodyMeasurement.builder()
+                        .userId(userId)
+                        .weightKg(request.weightKg())
+                        .bodyFatPercentage(request.bodyFatPercentage())
+                        .recordDate(request.recordDate())
+                        .build();
 
         BodyMeasurement saved = bodyMeasurementRepositoryPort.save(measurement);
         log.info("Created body measurement measurementId={} for userId={}", saved.getId(), userId);

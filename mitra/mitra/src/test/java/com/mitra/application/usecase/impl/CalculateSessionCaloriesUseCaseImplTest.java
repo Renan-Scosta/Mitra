@@ -1,5 +1,8 @@
 package com.mitra.application.usecase.impl;
 
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.*;
+
 import com.mitra.application.port.out.BodyMeasurementRepositoryPort;
 import com.mitra.application.port.out.WorkoutSessionRepositoryPort;
 import com.mitra.domain.model.BodyMeasurement;
@@ -8,6 +11,10 @@ import com.mitra.domain.model.SetRecord;
 import com.mitra.domain.model.WorkoutSession;
 import com.mitra.domain.model.enums.TrackingType;
 import com.mitra.presentation.dto.response.SessionCaloriesResponseDto;
+import java.math.BigDecimal;
+import java.time.LocalDateTime;
+import java.util.List;
+import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -15,45 +22,44 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import java.math.BigDecimal;
-import java.time.LocalDateTime;
-import java.util.List;
-import java.util.Optional;
-
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.*;
-
 @ExtendWith(MockitoExtension.class)
 class CalculateSessionCaloriesUseCaseImplTest {
 
-    @Mock
-    private WorkoutSessionRepositoryPort workoutSessionRepositoryPort;
+    @Mock private WorkoutSessionRepositoryPort workoutSessionRepositoryPort;
 
-    @Mock
-    private BodyMeasurementRepositoryPort bodyMeasurementRepositoryPort;
+    @Mock private BodyMeasurementRepositoryPort bodyMeasurementRepositoryPort;
 
-    @InjectMocks
-    private CalculateSessionCaloriesUseCaseImpl useCase;
+    @InjectMocks private CalculateSessionCaloriesUseCaseImpl useCase;
 
     private WorkoutSession session;
     private BodyMeasurement measurement;
 
     @BeforeEach
     void setUp() {
-        Exercise squat = Exercise.builder().name("Squat").metFactor(new BigDecimal("7.0")).trackingType(TrackingType.WEIGHT_REPS).build();
+        Exercise squat =
+                Exercise.builder()
+                        .name("Squat")
+                        .metFactor(new BigDecimal("7.0"))
+                        .trackingType(TrackingType.WEIGHT_REPS)
+                        .build();
         SetRecord record = SetRecord.builder().exercise(squat).reps(10).build();
-        
-        session = WorkoutSession.builder()
-                .id(100L).userId(1L).startTime(LocalDateTime.now())
-                .setRecords(List.of(record)).build();
-                
+
+        session =
+                WorkoutSession.builder()
+                        .id(100L)
+                        .userId(1L)
+                        .startTime(LocalDateTime.now())
+                        .setRecords(List.of(record))
+                        .build();
+
         measurement = BodyMeasurement.builder().weightKg(new BigDecimal("80.0")).build();
     }
 
     @Test
     void shouldCalculateCaloriesForSession() {
         when(workoutSessionRepositoryPort.findById(100L)).thenReturn(Optional.of(session));
-        when(bodyMeasurementRepositoryPort.findLatestByUserId(1L)).thenReturn(Optional.of(measurement));
+        when(bodyMeasurementRepositoryPort.findLatestByUserId(1L))
+                .thenReturn(Optional.of(measurement));
 
         SessionCaloriesResponseDto dto = useCase.execute(1L, 100L);
 
@@ -81,8 +87,9 @@ class CalculateSessionCaloriesUseCaseImplTest {
     void shouldThrowWhenNoBodyMeasurement() {
         when(workoutSessionRepositoryPort.findById(100L)).thenReturn(Optional.of(session));
         when(bodyMeasurementRepositoryPort.findLatestByUserId(1L)).thenReturn(Optional.empty());
-        
-        IllegalStateException ex = assertThrows(IllegalStateException.class, () -> useCase.execute(1L, 100L));
+
+        IllegalStateException ex =
+                assertThrows(IllegalStateException.class, () -> useCase.execute(1L, 100L));
         assertTrue(ex.getMessage().contains("No body measurement found"));
     }
 }

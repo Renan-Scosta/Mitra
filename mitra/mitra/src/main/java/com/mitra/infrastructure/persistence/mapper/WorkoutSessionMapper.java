@@ -4,7 +4,6 @@ import com.mitra.domain.model.WorkoutSession;
 import com.mitra.infrastructure.persistence.entity.UserEntity;
 import com.mitra.infrastructure.persistence.entity.WorkoutRoutineEntity;
 import com.mitra.infrastructure.persistence.entity.WorkoutSessionEntity;
-
 import java.util.stream.Collectors;
 
 public final class WorkoutSessionMapper {
@@ -26,9 +25,7 @@ public final class WorkoutSessionMapper {
     }
 
     public static WorkoutSessionEntity toEntity(
-            WorkoutSession domain,
-            UserEntity userEntity,
-            WorkoutRoutineEntity routineEntity) {
+            WorkoutSession domain, UserEntity userEntity, WorkoutRoutineEntity routineEntity) {
         return WorkoutSessionEntity.builder()
                 .id(domain.getId())
                 .workoutRoutine(routineEntity)

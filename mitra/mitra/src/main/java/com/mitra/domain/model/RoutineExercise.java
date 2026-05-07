@@ -16,8 +16,6 @@ public class RoutineExercise {
     private Exercise exercise;
     private int targetSets;
 
-    /**
-     * Target repetitions. Null for TIME_ONLY exercises.
-     */
+    /** Target repetitions. Null for TIME_ONLY exercises. */
     private Integer targetReps;
 }

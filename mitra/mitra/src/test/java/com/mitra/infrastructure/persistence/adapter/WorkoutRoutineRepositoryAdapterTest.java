@@ -1,33 +1,28 @@
 package com.mitra.infrastructure.persistence.adapter;
 
-import com.mitra.infrastructure.persistence.AbstractIntegrationTest;
+import static org.junit.jupiter.api.Assertions.*;
 
 import com.mitra.domain.model.User;
 import com.mitra.domain.model.WorkoutRoutine;
 import com.mitra.domain.model.enums.Gender;
+import com.mitra.infrastructure.persistence.AbstractIntegrationTest;
 import com.mitra.infrastructure.persistence.repository.UserJpaRepository;
 import com.mitra.infrastructure.persistence.repository.WorkoutRoutineJpaRepository;
+import java.time.LocalDate;
+import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.data.jpa.test.autoconfigure.DataJpaTest;
 import org.springframework.test.context.ActiveProfiles;
 
-import java.time.LocalDate;
-import java.util.List;
-import java.util.Optional;
-
-import static org.junit.jupiter.api.Assertions.*;
-
 @DataJpaTest
 @ActiveProfiles("test")
 class WorkoutRoutineRepositoryAdapterTest extends AbstractIntegrationTest {
 
-    @Autowired
-    private WorkoutRoutineJpaRepository routineJpaRepository;
+    @Autowired private WorkoutRoutineJpaRepository routineJpaRepository;
 
-    @Autowired
-    private UserJpaRepository userJpaRepository;
+    @Autowired private UserJpaRepository userJpaRepository;
 
     private WorkoutRoutineRepositoryAdapter adapter;
     private UserRepositoryAdapter userAdapter;
@@ -39,20 +34,23 @@ class WorkoutRoutineRepositoryAdapterTest extends AbstractIntegrationTest {
     }
 
     private User createAndSaveUser() {
-        return userAdapter.save(User.builder()
-                .email("routine@mitra.com").name("Routine User").password("hashed")
-                .birthDate(LocalDate.of(1995, 3, 10)).gender(Gender.MALE).heightCm(175)
-                .build());
+        return userAdapter.save(
+                User.builder()
+                        .email("routine@mitra.com")
+                        .name("Routine User")
+                        .password("hashed")
+                        .birthDate(LocalDate.of(1995, 3, 10))
+                        .gender(Gender.MALE)
+                        .heightCm(175)
+                        .build());
     }
 
     @Test
     void shouldSaveAndFindRoutineById() {
         User user = createAndSaveUser();
 
-        WorkoutRoutine routine = WorkoutRoutine.builder()
-                .userId(user.getId())
-                .name("Push Pull Legs")
-                .build();
+        WorkoutRoutine routine =
+                WorkoutRoutine.builder().userId(user.getId()).name("Push Pull Legs").build();
 
         WorkoutRoutine saved = adapter.save(routine);
 
@@ -67,13 +65,13 @@ class WorkoutRoutineRepositoryAdapterTest extends AbstractIntegrationTest {
     @Test
     void shouldFindRoutinesByUserId() {
         User savedUser = createAndSaveUser();
-        WorkoutRoutine routine = WorkoutRoutine.builder()
-                .userId(savedUser.getId())
-                .name("Push Day")
-                .build();
+        WorkoutRoutine routine =
+                WorkoutRoutine.builder().userId(savedUser.getId()).name("Push Day").build();
         adapter.save(routine);
 
-        var page = adapter.findByUserId(savedUser.getId(), org.springframework.data.domain.PageRequest.of(0, 10));
+        var page =
+                adapter.findByUserId(
+                        savedUser.getId(), org.springframework.data.domain.PageRequest.of(0, 10));
         assertFalse(page.isEmpty());
         assertEquals(1, page.getTotalElements());
         assertEquals("Push Day", page.getContent().get(0).getName());
@@ -82,14 +80,16 @@ class WorkoutRoutineRepositoryAdapterTest extends AbstractIntegrationTest {
     @Test
     void shouldReturnEmptyListWhenNoRoutinesForUser() {
         User savedUser = createAndSaveUser();
-        var page = adapter.findByUserId(savedUser.getId(), org.springframework.data.domain.PageRequest.of(0, 10));
+        var page =
+                adapter.findByUserId(
+                        savedUser.getId(), org.springframework.data.domain.PageRequest.of(0, 10));
         assertTrue(page.isEmpty());
     }
 
     @Test
     void shouldThrowWhenSavingRoutineForNonExistentUser() {
-        WorkoutRoutine routine = WorkoutRoutine.builder()
-                .userId(999L).name("Ghost Routine").build();
+        WorkoutRoutine routine =
+                WorkoutRoutine.builder().userId(999L).name("Ghost Routine").build();
 
         assertThrows(IllegalArgumentException.class, () -> adapter.save(routine));
     }

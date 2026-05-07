@@ -1,5 +1,9 @@
 package com.mitra.application.usecase.impl;
 
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.*;
+
 import com.mitra.application.port.out.ExerciseRepositoryPort;
 import com.mitra.application.port.out.RoutineExerciseRepositoryPort;
 import com.mitra.application.port.out.WorkoutRoutineRepositoryPort;
@@ -9,37 +13,32 @@ import com.mitra.domain.model.WorkoutRoutine;
 import com.mitra.domain.model.enums.TrackingType;
 import com.mitra.presentation.dto.request.AddRoutineExerciseRequestDto;
 import com.mitra.presentation.dto.response.RoutineExerciseResponseDto;
+import java.math.BigDecimal;
+import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import java.math.BigDecimal;
-import java.util.Optional;
-
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.*;
-
 @ExtendWith(MockitoExtension.class)
 class AddRoutineExerciseUseCaseImplTest {
 
-    @Mock
-    private RoutineExerciseRepositoryPort routineExerciseRepositoryPort;
+    @Mock private RoutineExerciseRepositoryPort routineExerciseRepositoryPort;
 
-    @Mock
-    private ExerciseRepositoryPort exerciseRepositoryPort;
+    @Mock private ExerciseRepositoryPort exerciseRepositoryPort;
 
-    @Mock
-    private WorkoutRoutineRepositoryPort workoutRoutineRepositoryPort;
+    @Mock private WorkoutRoutineRepositoryPort workoutRoutineRepositoryPort;
 
     private AddRoutineExerciseUseCaseImpl useCase;
 
     @BeforeEach
     void setUp() {
-        useCase = new AddRoutineExerciseUseCaseImpl(
-                routineExerciseRepositoryPort, exerciseRepositoryPort, workoutRoutineRepositoryPort);
+        useCase =
+                new AddRoutineExerciseUseCaseImpl(
+                        routineExerciseRepositoryPort,
+                        exerciseRepositoryPort,
+                        workoutRoutineRepositoryPort);
     }
 
     @Test
@@ -48,20 +47,28 @@ class AddRoutineExerciseUseCaseImplTest {
         Long routineId = 10L;
         WorkoutRoutine routine = WorkoutRoutine.builder().id(routineId).userId(userId).build();
 
-        Exercise exercise = Exercise.builder()
-                .id(5L).name("Deadlift").muscleGroup("Back")
-                .metFactor(new BigDecimal("6.0")).trackingType(TrackingType.WEIGHT_REPS)
-                .build();
+        Exercise exercise =
+                Exercise.builder()
+                        .id(5L)
+                        .name("Deadlift")
+                        .muscleGroup("Back")
+                        .metFactor(new BigDecimal("6.0"))
+                        .trackingType(TrackingType.WEIGHT_REPS)
+                        .build();
 
         AddRoutineExerciseRequestDto request = new AddRoutineExerciseRequestDto(5L, 3, 8);
 
         when(workoutRoutineRepositoryPort.findById(routineId)).thenReturn(Optional.of(routine));
         when(exerciseRepositoryPort.findById(5L)).thenReturn(Optional.of(exercise));
         when(routineExerciseRepositoryPort.save(any(RoutineExercise.class)))
-                .thenReturn(RoutineExercise.builder()
-                        .id(30L).routineId(routineId).exercise(exercise)
-                        .targetSets(3).targetReps(8)
-                        .build());
+                .thenReturn(
+                        RoutineExercise.builder()
+                                .id(30L)
+                                .routineId(routineId)
+                                .exercise(exercise)
+                                .targetSets(3)
+                                .targetReps(8)
+                                .build());
 
         RoutineExerciseResponseDto result = useCase.execute(userId, routineId, request);
 
@@ -91,7 +98,8 @@ class AddRoutineExerciseUseCaseImplTest {
         when(workoutRoutineRepositoryPort.findById(routineId)).thenReturn(Optional.of(routine));
         when(exerciseRepositoryPort.findById(999L)).thenReturn(Optional.empty());
 
-        assertThrows(IllegalArgumentException.class, () -> useCase.execute(userId, routineId, request));
+        assertThrows(
+                IllegalArgumentException.class, () -> useCase.execute(userId, routineId, request));
         verify(routineExerciseRepositoryPort, never()).save(any());
     }
 
@@ -105,7 +113,8 @@ class AddRoutineExerciseUseCaseImplTest {
 
         when(workoutRoutineRepositoryPort.findById(routineId)).thenReturn(Optional.of(routine));
 
-        assertThrows(SecurityException.class, () -> useCase.execute(attackerId, routineId, request));
+        assertThrows(
+                SecurityException.class, () -> useCase.execute(attackerId, routineId, request));
         verify(routineExerciseRepositoryPort, never()).save(any());
     }
 }

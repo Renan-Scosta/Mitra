@@ -20,7 +20,8 @@ public class DeleteUserAccountUseCaseImpl implements DeleteUserAccountUseCase {
 
     @Override
     public void execute(Long userId) {
-        userRepositoryPort.findById(userId)
+        userRepositoryPort
+                .findById(userId)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found: " + userId));
 
         userRepositoryPort.deleteById(userId);

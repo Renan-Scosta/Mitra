@@ -18,7 +18,8 @@ public class UpdateUserPasswordUseCaseImpl implements UpdateUserPasswordUseCase 
     private final UserRepositoryPort userRepositoryPort;
     private final PasswordEncoderPort passwordEncoderPort;
 
-    public UpdateUserPasswordUseCaseImpl(UserRepositoryPort userRepositoryPort, PasswordEncoderPort passwordEncoderPort) {
+    public UpdateUserPasswordUseCaseImpl(
+            UserRepositoryPort userRepositoryPort, PasswordEncoderPort passwordEncoderPort) {
         this.userRepositoryPort = userRepositoryPort;
         this.passwordEncoderPort = passwordEncoderPort;
     }
@@ -29,13 +30,18 @@ public class UpdateUserPasswordUseCaseImpl implements UpdateUserPasswordUseCase 
             throw new IllegalArgumentException("New passwords do not match");
         }
 
-        User user = userRepositoryPort.findById(userId)
-                .orElseThrow(() -> new ResourceNotFoundException("User not found: " + userId));
+        User user =
+                userRepositoryPort
+                        .findById(userId)
+                        .orElseThrow(
+                                () -> new ResourceNotFoundException("User not found: " + userId));
 
-        // Skip password validation if the user was registered via Google OAuth2 with the dummy password
+        // Skip password validation if the user was registered via Google OAuth2 with the dummy
+        // password
         if ("[OAUTH2_GOOGLE]".equals(user.getPassword())) {
-             log.warn("Password change blocked — OAuth2 account userId={}", userId);
-             throw new SecurityException("Account is managed by Google OAuth2. Password cannot be changed.");
+            log.warn("Password change blocked — OAuth2 account userId={}", userId);
+            throw new SecurityException(
+                    "Account is managed by Google OAuth2. Password cannot be changed.");
         }
 
         if (!passwordEncoderPort.matches(request.currentPassword(), user.getPassword())) {
@@ -43,16 +49,17 @@ public class UpdateUserPasswordUseCaseImpl implements UpdateUserPasswordUseCase 
             throw new SecurityException("Current password is incorrect");
         }
 
-        User updatedUser = User.builder()
-                .id(user.getId())
-                .email(user.getEmail())
-                .name(user.getName())
-                .birthDate(user.getBirthDate())
-                .gender(user.getGender())
-                .heightCm(user.getHeightCm())
-                .password(passwordEncoderPort.encode(request.newPassword()))
-                .role(user.getRole())
-                .build();
+        User updatedUser =
+                User.builder()
+                        .id(user.getId())
+                        .email(user.getEmail())
+                        .name(user.getName())
+                        .birthDate(user.getBirthDate())
+                        .gender(user.getGender())
+                        .heightCm(user.getHeightCm())
+                        .password(passwordEncoderPort.encode(request.newPassword()))
+                        .role(user.getRole())
+                        .build();
 
         userRepositoryPort.save(updatedUser);
         log.info("Password updated for userId={}", userId);

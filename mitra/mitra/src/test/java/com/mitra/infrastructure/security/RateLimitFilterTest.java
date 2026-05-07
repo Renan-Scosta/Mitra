@@ -1,13 +1,13 @@
 package com.mitra.infrastructure.security;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.mock.web.MockFilterChain;
 import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.mock.web.MockHttpServletResponse;
-
-import static org.assertj.core.api.Assertions.assertThat;
 
 class RateLimitFilterTest {
 
@@ -47,7 +47,8 @@ class RateLimitFilterTest {
 
         assertThat(response.getStatus()).isEqualTo(200);
         assertThat(response.getHeader("X-Rate-Limit-Remaining")).isNotNull();
-        assertThat(Integer.parseInt(response.getHeader("X-Rate-Limit-Remaining"))).isGreaterThanOrEqualTo(0);
+        assertThat(Integer.parseInt(response.getHeader("X-Rate-Limit-Remaining")))
+                .isGreaterThanOrEqualTo(0);
     }
 
     @Test
@@ -57,7 +58,8 @@ class RateLimitFilterTest {
 
         // Exhaust the login bucket (limit=3)
         for (int i = 0; i < 3; i++) {
-            MockHttpServletRequest request = new MockHttpServletRequest("POST", "/api/v1/auth/login");
+            MockHttpServletRequest request =
+                    new MockHttpServletRequest("POST", "/api/v1/auth/login");
             request.setRemoteAddr(clientIp);
             MockHttpServletResponse response = new MockHttpServletResponse();
             filter.doFilterInternal(request, response, new MockFilterChain());
@@ -96,7 +98,8 @@ class RateLimitFilterTest {
     @DisplayName("Should not rate-limit GET requests")
     void shouldNotRateLimitGetRequests() throws Exception {
         for (int i = 0; i < 50; i++) {
-            MockHttpServletRequest request = new MockHttpServletRequest("GET", "/api/v1/auth/login");
+            MockHttpServletRequest request =
+                    new MockHttpServletRequest("GET", "/api/v1/auth/login");
             request.setRemoteAddr("10.0.0.3");
             MockHttpServletResponse response = new MockHttpServletResponse();
             filter.doFilterInternal(request, response, new MockFilterChain());
@@ -109,20 +112,23 @@ class RateLimitFilterTest {
     void shouldIsolateBucketsPerIp() throws Exception {
         // Exhaust bucket for IP-A
         for (int i = 0; i < 3; i++) {
-            MockHttpServletRequest request = new MockHttpServletRequest("POST", "/api/v1/auth/login");
+            MockHttpServletRequest request =
+                    new MockHttpServletRequest("POST", "/api/v1/auth/login");
             request.setRemoteAddr("10.0.0.10");
             filter.doFilterInternal(request, new MockHttpServletResponse(), new MockFilterChain());
         }
 
         // IP-A should be blocked
-        MockHttpServletRequest blockedRequest = new MockHttpServletRequest("POST", "/api/v1/auth/login");
+        MockHttpServletRequest blockedRequest =
+                new MockHttpServletRequest("POST", "/api/v1/auth/login");
         blockedRequest.setRemoteAddr("10.0.0.10");
         MockHttpServletResponse blockedResponse = new MockHttpServletResponse();
         filter.doFilterInternal(blockedRequest, blockedResponse, new MockFilterChain());
         assertThat(blockedResponse.getStatus()).isEqualTo(429);
 
         // IP-B should still be allowed
-        MockHttpServletRequest allowedRequest = new MockHttpServletRequest("POST", "/api/v1/auth/login");
+        MockHttpServletRequest allowedRequest =
+                new MockHttpServletRequest("POST", "/api/v1/auth/login");
         allowedRequest.setRemoteAddr("10.0.0.20");
         MockHttpServletResponse allowedResponse = new MockHttpServletResponse();
         filter.doFilterInternal(allowedRequest, allowedResponse, new MockFilterChain());
@@ -149,7 +155,8 @@ class RateLimitFilterTest {
         assertThat(response.getStatus()).isEqualTo(429);
 
         // But login for the same IP should still work (different bucket map)
-        MockHttpServletRequest loginRequest = new MockHttpServletRequest("POST", "/api/v1/auth/login");
+        MockHttpServletRequest loginRequest =
+                new MockHttpServletRequest("POST", "/api/v1/auth/login");
         loginRequest.setRemoteAddr(clientIp);
         MockHttpServletResponse loginResponse = new MockHttpServletResponse();
         filter.doFilterInternal(loginRequest, loginResponse, new MockFilterChain());
@@ -184,7 +191,8 @@ class RateLimitFilterTest {
 
         // Exhaust the login bucket (limit=3, shared with /auth/login)
         for (int i = 0; i < 3; i++) {
-            MockHttpServletRequest request = new MockHttpServletRequest("POST", "/api/v1/auth/google");
+            MockHttpServletRequest request =
+                    new MockHttpServletRequest("POST", "/api/v1/auth/google");
             request.setRemoteAddr(clientIp);
             filter.doFilterInternal(request, new MockHttpServletResponse(), new MockFilterChain());
         }

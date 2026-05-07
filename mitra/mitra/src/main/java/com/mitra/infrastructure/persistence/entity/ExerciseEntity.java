@@ -2,11 +2,10 @@ package com.mitra.infrastructure.persistence.entity;
 
 import com.mitra.domain.model.enums.TrackingType;
 import jakarta.persistence.*;
-import lombok.*;
-
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
+import lombok.*;
 
 @Entity
 @Table(name = "exercises")

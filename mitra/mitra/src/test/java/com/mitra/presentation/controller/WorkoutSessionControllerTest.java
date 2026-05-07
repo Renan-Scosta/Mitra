@@ -1,20 +1,34 @@
 package com.mitra.presentation.controller;
 
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.when;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
+import com.mitra.application.usecase.CalculateSessionCaloriesUseCase;
+import com.mitra.application.usecase.FinishWorkoutSessionUseCase;
+import com.mitra.application.usecase.GetUserSessionsUseCase;
+import com.mitra.application.usecase.GetWorkoutSessionUseCase;
 import com.mitra.application.usecase.LogSetRecordUseCase;
 import com.mitra.application.usecase.StartWorkoutSessionUseCase;
-import com.mitra.application.usecase.FinishWorkoutSessionUseCase;
-import com.mitra.application.usecase.GetWorkoutSessionUseCase;
-import com.mitra.application.usecase.GetUserSessionsUseCase;
-import com.mitra.application.usecase.CalculateSessionCaloriesUseCase;
 import com.mitra.domain.model.User;
 import com.mitra.infrastructure.security.RateLimitFilter;
-import com.mitra.presentation.dto.response.SetRecordResponseDto;
-import com.mitra.presentation.dto.response.SessionSummaryResponseDto;
-import com.mitra.presentation.dto.response.WorkoutSessionResponseDto;
 import com.mitra.presentation.dto.response.SessionCaloriesResponseDto;
+import com.mitra.presentation.dto.response.SessionSummaryResponseDto;
+import com.mitra.presentation.dto.response.SetRecordResponseDto;
+import com.mitra.presentation.dto.response.WorkoutSessionResponseDto;
+import java.math.BigDecimal;
+import java.time.LocalDateTime;
+import java.util.Collections;
+import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
@@ -26,60 +40,35 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
-import java.math.BigDecimal;
-import java.time.LocalDateTime;
-import java.util.Collections;
-import java.util.List;
-
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.when;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
-
-import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
-
 @WebMvcTest(WorkoutSessionController.class)
 @ActiveProfiles("test")
 @AutoConfigureMockMvc(addFilters = false)
 class WorkoutSessionControllerTest {
 
-    @Autowired
-    private MockMvc mockMvc;
+    @Autowired private MockMvc mockMvc;
 
-    @MockitoBean
-    private RateLimitFilter rateLimitFilter;
+    @MockitoBean private RateLimitFilter rateLimitFilter;
 
-    @MockitoBean
-    private StartWorkoutSessionUseCase startWorkoutSessionUseCase;
+    @MockitoBean private StartWorkoutSessionUseCase startWorkoutSessionUseCase;
 
-    @MockitoBean
-    private LogSetRecordUseCase logSetRecordUseCase;
+    @MockitoBean private LogSetRecordUseCase logSetRecordUseCase;
 
-    @MockitoBean
-    private FinishWorkoutSessionUseCase finishWorkoutSessionUseCase;
+    @MockitoBean private FinishWorkoutSessionUseCase finishWorkoutSessionUseCase;
 
-    @MockitoBean
-    private GetWorkoutSessionUseCase getWorkoutSessionUseCase;
+    @MockitoBean private GetWorkoutSessionUseCase getWorkoutSessionUseCase;
 
-    @MockitoBean
-    private GetUserSessionsUseCase getUserSessionsUseCase;
+    @MockitoBean private GetUserSessionsUseCase getUserSessionsUseCase;
 
-    @MockitoBean
-    private CalculateSessionCaloriesUseCase calculateSessionCaloriesUseCase;
+    @MockitoBean private CalculateSessionCaloriesUseCase calculateSessionCaloriesUseCase;
 
-    @MockitoBean
-    private com.mitra.application.port.out.UserRepositoryPort userRepositoryPort;
+    @MockitoBean private com.mitra.application.port.out.UserRepositoryPort userRepositoryPort;
 
-    @MockitoBean
-    private com.mitra.infrastructure.security.TokenService tokenService;
+    @MockitoBean private com.mitra.infrastructure.security.TokenService tokenService;
 
     @BeforeEach
     void setUp() {
-        User testUser = User.builder().id(1L).email("test@mitra.com").name("Test").password("x").build();
+        User testUser =
+                User.builder().id(1L).email("test@mitra.com").name("Test").password("x").build();
         var auth = new UsernamePasswordAuthenticationToken(testUser, null, Collections.emptyList());
         SecurityContextHolder.getContext().setAuthentication(auth);
     }
@@ -88,15 +77,17 @@ class WorkoutSessionControllerTest {
     void shouldStartSessionAndReturn201() throws Exception {
         when(startWorkoutSessionUseCase.execute(any(), any())).thenReturn(100L);
 
-        String payload = """
+        String payload =
+                """
                 {
                     "routineId": 10
                 }
                 """;
 
-        mockMvc.perform(post("/api/v1/sessions")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(payload))
+        mockMvc.perform(
+                        post("/api/v1/sessions")
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(payload))
                 .andExpect(status().isCreated())
                 .andExpect(header().exists("Location"))
                 .andExpect(header().string("Location", "/api/v1/sessions/100"));
@@ -104,10 +95,12 @@ class WorkoutSessionControllerTest {
 
     @Test
     void shouldLogSetAndReturn200() throws Exception {
-        SetRecordResponseDto responseDto = new SetRecordResponseDto(30L, 5L, new BigDecimal("45.0"), 12, null);
+        SetRecordResponseDto responseDto =
+                new SetRecordResponseDto(30L, 5L, new BigDecimal("45.0"), 12, null);
         when(logSetRecordUseCase.execute(eq(1L), eq(100L), any())).thenReturn(responseDto);
 
-        String payload = """
+        String payload =
+                """
                 {
                     "exerciseId": 5,
                     "weightKg": 45.0,
@@ -115,9 +108,10 @@ class WorkoutSessionControllerTest {
                 }
                 """;
 
-        mockMvc.perform(post("/api/v1/sessions/100/sets")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(payload))
+        mockMvc.perform(
+                        post("/api/v1/sessions/100/sets")
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(payload))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").value(30))
                 .andExpect(jsonPath("$.reps").value(12));
@@ -137,9 +131,9 @@ class WorkoutSessionControllerTest {
 
     @Test
     void shouldGetSessionDetailsAndReturn200() throws Exception {
-        WorkoutSessionResponseDto sessionDto = new WorkoutSessionResponseDto(
-                100L, 1L, 10L, LocalDateTime.now(), null, true, List.of()
-        );
+        WorkoutSessionResponseDto sessionDto =
+                new WorkoutSessionResponseDto(
+                        100L, 1L, 10L, LocalDateTime.now(), null, true, List.of());
 
         when(getWorkoutSessionUseCase.execute(1L, 100L)).thenReturn(sessionDto);
 
@@ -151,15 +145,23 @@ class WorkoutSessionControllerTest {
 
     @Test
     void shouldReturnSessionHistoryForAuthenticatedUser() throws Exception {
-        List<WorkoutSessionResponseDto> sessions = List.of(
-                new WorkoutSessionResponseDto(1L, 1L, 10L, LocalDateTime.now().minusDays(1),
-                        LocalDateTime.now().minusDays(1).plusHours(1), false, List.of()),
-                new WorkoutSessionResponseDto(2L, 1L, 10L, LocalDateTime.now(), null, true, List.of())
-        );
+        List<WorkoutSessionResponseDto> sessions =
+                List.of(
+                        new WorkoutSessionResponseDto(
+                                1L,
+                                1L,
+                                10L,
+                                LocalDateTime.now().minusDays(1),
+                                LocalDateTime.now().minusDays(1).plusHours(1),
+                                false,
+                                List.of()),
+                        new WorkoutSessionResponseDto(
+                                2L, 1L, 10L, LocalDateTime.now(), null, true, List.of()));
 
         Page<WorkoutSessionResponseDto> page = new PageImpl<>(sessions);
 
-        when(getUserSessionsUseCase.execute(eq(1L), any(), any(), any(Pageable.class))).thenReturn(page);
+        when(getUserSessionsUseCase.execute(eq(1L), any(), any(), any(Pageable.class)))
+                .thenReturn(page);
 
         mockMvc.perform(get("/api/v1/sessions?page=0&size=10"))
                 .andExpect(status().isOk())
@@ -170,9 +172,11 @@ class WorkoutSessionControllerTest {
 
     @Test
     void shouldCalculateSessionCaloriesAndReturn200() throws Exception {
-        SessionCaloriesResponseDto.ExerciseCaloriesDto exDto = new SessionCaloriesResponseDto.ExerciseCaloriesDto("Squat", 150.5);
-        SessionCaloriesResponseDto responseDto = new SessionCaloriesResponseDto(100L, 150.5, List.of(exDto));
-        
+        SessionCaloriesResponseDto.ExerciseCaloriesDto exDto =
+                new SessionCaloriesResponseDto.ExerciseCaloriesDto("Squat", 150.5);
+        SessionCaloriesResponseDto responseDto =
+                new SessionCaloriesResponseDto(100L, 150.5, List.of(exDto));
+
         when(calculateSessionCaloriesUseCase.execute(1L, 100L)).thenReturn(responseDto);
 
         mockMvc.perform(get("/api/v1/sessions/100/calories"))

@@ -1,7 +1,6 @@
 package com.mitra.presentation.dto.response;
 
 import io.swagger.v3.oas.annotations.media.Schema;
-
 import java.math.BigDecimal;
 import java.time.LocalDate;
 
@@ -12,6 +11,4 @@ public record BodyMeasurementResponseDto(
         BigDecimal bodyFatPercentage,
         BigDecimal leanMassKg,
         BigDecimal fatMassKg,
-        LocalDate recordDate
-) {
-}
+        LocalDate recordDate) {}

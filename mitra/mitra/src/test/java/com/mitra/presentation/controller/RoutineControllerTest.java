@@ -1,14 +1,26 @@
 package com.mitra.presentation.controller;
 
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.when;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
 import com.mitra.application.usecase.AddRoutineExerciseUseCase;
 import com.mitra.application.usecase.CreateWorkoutRoutineUseCase;
 import com.mitra.application.usecase.GetWorkoutRoutinesUseCase;
 import com.mitra.domain.model.User;
+import com.mitra.domain.model.enums.TrackingType;
 import com.mitra.infrastructure.security.RateLimitFilter;
 import com.mitra.presentation.dto.response.ExerciseResponseDto;
 import com.mitra.presentation.dto.response.RoutineExerciseResponseDto;
 import com.mitra.presentation.dto.response.RoutineResponseDto;
-import com.mitra.domain.model.enums.TrackingType;
+import java.math.BigDecimal;
+import java.util.Collections;
+import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,48 +33,29 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
-import java.math.BigDecimal;
-import java.util.Collections;
-import java.util.List;
-
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.when;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
-
 @WebMvcTest(RoutineController.class)
 @ActiveProfiles("test")
 @AutoConfigureMockMvc(addFilters = false)
 class RoutineControllerTest {
 
-    @Autowired
-    private MockMvc mockMvc;
+    @Autowired private MockMvc mockMvc;
 
-    @MockitoBean
-    private RateLimitFilter rateLimitFilter;
+    @MockitoBean private RateLimitFilter rateLimitFilter;
 
-    @MockitoBean
-    private CreateWorkoutRoutineUseCase createWorkoutRoutineUseCase;
+    @MockitoBean private CreateWorkoutRoutineUseCase createWorkoutRoutineUseCase;
 
-    @MockitoBean
-    private GetWorkoutRoutinesUseCase getWorkoutRoutinesUseCase;
+    @MockitoBean private GetWorkoutRoutinesUseCase getWorkoutRoutinesUseCase;
 
-    @MockitoBean
-    private AddRoutineExerciseUseCase addRoutineExerciseUseCase;
+    @MockitoBean private AddRoutineExerciseUseCase addRoutineExerciseUseCase;
 
-    @MockitoBean
-    private com.mitra.application.port.out.UserRepositoryPort userRepositoryPort;
+    @MockitoBean private com.mitra.application.port.out.UserRepositoryPort userRepositoryPort;
 
-    @MockitoBean
-    private com.mitra.infrastructure.security.TokenService tokenService;
+    @MockitoBean private com.mitra.infrastructure.security.TokenService tokenService;
 
     @BeforeEach
     void setUp() {
-        User testUser = User.builder().id(1L).email("test@mitra.com").name("Test").password("x").build();
+        User testUser =
+                User.builder().id(1L).email("test@mitra.com").name("Test").password("x").build();
         var auth = new UsernamePasswordAuthenticationToken(testUser, null, Collections.emptyList());
         SecurityContextHolder.getContext().setAuthentication(auth);
     }
@@ -71,27 +64,34 @@ class RoutineControllerTest {
     void shouldCreateRoutineAndReturn201() throws Exception {
         when(createWorkoutRoutineUseCase.execute(any(), any())).thenReturn(10L);
 
-        String payload = """
+        String payload =
+                """
                 {
                     "name": "Full Body A"
                 }
                 """;
 
-        mockMvc.perform(post("/api/v1/routines")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(payload))
+        mockMvc.perform(
+                        post("/api/v1/routines")
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(payload))
                 .andExpect(status().isCreated())
                 .andExpect(header().exists("Location"));
     }
 
     @Test
     void shouldReturnUserRoutines() throws Exception {
-        ExerciseResponseDto exDto = new ExerciseResponseDto(5L, "Squat", "Legs", new BigDecimal("7.0"), TrackingType.WEIGHT_REPS);
+        ExerciseResponseDto exDto =
+                new ExerciseResponseDto(
+                        5L, "Squat", "Legs", new BigDecimal("7.0"), TrackingType.WEIGHT_REPS);
         RoutineExerciseResponseDto responseDto = new RoutineExerciseResponseDto(25L, exDto, 4, 10);
-        
-        when(getWorkoutRoutinesUseCase.execute(eq(1L), any())).thenReturn(new org.springframework.data.domain.PageImpl<>(List.of(
-                new RoutineResponseDto(10L, 1L, "Full Body A", List.of(responseDto))
-        )));
+
+        when(getWorkoutRoutinesUseCase.execute(eq(1L), any()))
+                .thenReturn(
+                        new org.springframework.data.domain.PageImpl<>(
+                                List.of(
+                                        new RoutineResponseDto(
+                                                10L, 1L, "Full Body A", List.of(responseDto)))));
 
         mockMvc.perform(get("/api/v1/routines"))
                 .andExpect(status().isOk())
@@ -102,12 +102,15 @@ class RoutineControllerTest {
 
     @Test
     void shouldAddExerciseToRoutine() throws Exception {
-        ExerciseResponseDto exDto = new ExerciseResponseDto(5L, "Squat", "Legs", new BigDecimal("7.0"), TrackingType.WEIGHT_REPS);
+        ExerciseResponseDto exDto =
+                new ExerciseResponseDto(
+                        5L, "Squat", "Legs", new BigDecimal("7.0"), TrackingType.WEIGHT_REPS);
         RoutineExerciseResponseDto responseDto = new RoutineExerciseResponseDto(25L, exDto, 4, 10);
 
         when(addRoutineExerciseUseCase.execute(eq(1L), eq(10L), any())).thenReturn(responseDto);
 
-        String payload = """
+        String payload =
+                """
                 {
                     "exerciseId": 5,
                     "targetSets": 4,
@@ -115,9 +118,10 @@ class RoutineControllerTest {
                 }
                 """;
 
-        mockMvc.perform(post("/api/v1/routines/10/exercises")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(payload))
+        mockMvc.perform(
+                        post("/api/v1/routines/10/exercises")
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(payload))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").value(25))
                 .andExpect(jsonPath("$.targetSets").value(4));

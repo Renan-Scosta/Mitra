@@ -21,9 +21,7 @@ public final class SetRecordMapper {
     }
 
     public static SetRecordEntity toEntity(
-            SetRecord domain,
-            WorkoutSessionEntity sessionEntity,
-            ExerciseEntity exerciseEntity) {
+            SetRecord domain, WorkoutSessionEntity sessionEntity, ExerciseEntity exerciseEntity) {
         return SetRecordEntity.builder()
                 .id(domain.getId())
                 .workoutSession(sessionEntity)

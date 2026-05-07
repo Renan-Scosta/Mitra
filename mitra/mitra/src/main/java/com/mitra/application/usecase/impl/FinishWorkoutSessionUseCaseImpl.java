@@ -8,10 +8,9 @@ import com.mitra.domain.model.WorkoutSession;
 import com.mitra.domain.service.CalorieCalculator;
 import com.mitra.domain.service.CalorieResult;
 import com.mitra.presentation.dto.response.SessionSummaryResponseDto;
+import java.util.Optional;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
-
-import java.util.Optional;
 
 @Slf4j
 @Service
@@ -31,8 +30,10 @@ public class FinishWorkoutSessionUseCaseImpl implements FinishWorkoutSessionUseC
 
     @Override
     public SessionSummaryResponseDto execute(Long userId, Long sessionId) {
-        WorkoutSession session = workoutSessionRepositoryPort.findById(sessionId)
-                .orElseThrow(() -> new IllegalArgumentException("Session not found"));
+        WorkoutSession session =
+                workoutSessionRepositoryPort
+                        .findById(sessionId)
+                        .orElseThrow(() -> new IllegalArgumentException("Session not found"));
 
         if (!session.getUserId().equals(userId)) {
             log.warn("Ownership violation: userId={} tried sessionId={}", userId, sessionId);
@@ -47,13 +48,24 @@ public class FinishWorkoutSessionUseCaseImpl implements FinishWorkoutSessionUseC
 
         // Calculate calories gracefully
         Double estimatedCalories = null;
-        Optional<BodyMeasurement> measurementOpt = bodyMeasurementRepositoryPort.findLatestByUserId(userId);
-        if (measurementOpt.isPresent() && saved.getSetRecords() != null && !saved.getSetRecords().isEmpty()) {
-            CalorieResult result = calorieCalculator.calculate(saved.getSetRecords(), measurementOpt.get().getWeightKg());
+        Optional<BodyMeasurement> measurementOpt =
+                bodyMeasurementRepositoryPort.findLatestByUserId(userId);
+        if (measurementOpt.isPresent()
+                && saved.getSetRecords() != null
+                && !saved.getSetRecords().isEmpty()) {
+            CalorieResult result =
+                    calorieCalculator.calculate(
+                            saved.getSetRecords(), measurementOpt.get().getWeightKg());
             estimatedCalories = result.totalCalories();
         }
 
-        log.info("Finished session sessionId={} — sets={} duration={}min calories={}", saved.getId(), totalSets, durationMinutes, estimatedCalories);
-        return new SessionSummaryResponseDto(saved.getId(), totalSets, durationMinutes, estimatedCalories);
+        log.info(
+                "Finished session sessionId={} — sets={} duration={}min calories={}",
+                saved.getId(),
+                totalSets,
+                durationMinutes,
+                estimatedCalories);
+        return new SessionSummaryResponseDto(
+                saved.getId(), totalSets, durationMinutes, estimatedCalories);
     }
 }

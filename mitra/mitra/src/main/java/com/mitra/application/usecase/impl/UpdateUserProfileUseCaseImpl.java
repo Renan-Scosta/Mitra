@@ -23,19 +23,23 @@ public class UpdateUserProfileUseCaseImpl implements UpdateUserProfileUseCase {
 
     @Override
     public UserProfileResponseDto execute(Long userId, UpdateUserProfileRequestDto request) {
-        User user = userRepositoryPort.findById(userId)
-                .orElseThrow(() -> new ResourceNotFoundException("User not found: " + userId));
+        User user =
+                userRepositoryPort
+                        .findById(userId)
+                        .orElseThrow(
+                                () -> new ResourceNotFoundException("User not found: " + userId));
 
-        User updatedUser = User.builder()
-                .id(user.getId())
-                .email(user.getEmail())
-                .name(request.name())
-                .birthDate(request.birthDate())
-                .gender(request.gender())
-                .heightCm(request.heightCm())
-                .password(user.getPassword())
-                .role(user.getRole())
-                .build();
+        User updatedUser =
+                User.builder()
+                        .id(user.getId())
+                        .email(user.getEmail())
+                        .name(request.name())
+                        .birthDate(request.birthDate())
+                        .gender(request.gender())
+                        .heightCm(request.heightCm())
+                        .password(user.getPassword())
+                        .role(user.getRole())
+                        .build();
 
         User savedUser = userRepositoryPort.save(updatedUser);
         log.info("Updated profile for userId={}", userId);
@@ -47,7 +51,6 @@ public class UpdateUserProfileUseCaseImpl implements UpdateUserProfileUseCase {
                 savedUser.getBirthDate(),
                 savedUser.getGender(),
                 savedUser.getHeightCm(),
-                savedUser.getAge()
-        );
+                savedUser.getAge());
     }
 }

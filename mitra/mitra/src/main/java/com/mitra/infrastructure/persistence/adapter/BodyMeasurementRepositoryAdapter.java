@@ -5,11 +5,10 @@ import com.mitra.domain.model.BodyMeasurement;
 import com.mitra.infrastructure.persistence.mapper.BodyMeasurementMapper;
 import com.mitra.infrastructure.persistence.repository.BodyMeasurementJpaRepository;
 import com.mitra.infrastructure.persistence.repository.UserJpaRepository;
+import java.util.Optional;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Repository;
-
-import java.util.Optional;
 
 @Repository
 public class BodyMeasurementRepositoryAdapter implements BodyMeasurementRepositoryPort {
@@ -18,29 +17,34 @@ public class BodyMeasurementRepositoryAdapter implements BodyMeasurementReposito
     private final UserJpaRepository userJpaRepository;
 
     public BodyMeasurementRepositoryAdapter(
-            BodyMeasurementJpaRepository jpaRepository,
-            UserJpaRepository userJpaRepository) {
+            BodyMeasurementJpaRepository jpaRepository, UserJpaRepository userJpaRepository) {
         this.jpaRepository = jpaRepository;
         this.userJpaRepository = userJpaRepository;
     }
 
     @Override
     public Optional<BodyMeasurement> findLatestByUserId(Long userId) {
-        return jpaRepository.findFirstByUserIdOrderByRecordDateDesc(userId)
+        return jpaRepository
+                .findFirstByUserIdOrderByRecordDateDesc(userId)
                 .map(BodyMeasurementMapper::toDomain);
     }
 
     @Override
     public Page<BodyMeasurement> findAllByUserId(Long userId, Pageable pageable) {
-        return jpaRepository.findByUserIdOrderByRecordDateDesc(userId, pageable)
+        return jpaRepository
+                .findByUserIdOrderByRecordDateDesc(userId, pageable)
                 .map(BodyMeasurementMapper::toDomain);
     }
 
     @Override
     public BodyMeasurement save(BodyMeasurement bodyMeasurement) {
-        var userEntity = userJpaRepository.findById(bodyMeasurement.getUserId())
-                .orElseThrow(() -> new IllegalArgumentException(
-                        "User not found: " + bodyMeasurement.getUserId()));
+        var userEntity =
+                userJpaRepository
+                        .findById(bodyMeasurement.getUserId())
+                        .orElseThrow(
+                                () ->
+                                        new IllegalArgumentException(
+                                                "User not found: " + bodyMeasurement.getUserId()));
         var entity = BodyMeasurementMapper.toEntity(bodyMeasurement, userEntity);
         var saved = jpaRepository.save(entity);
         return BodyMeasurementMapper.toDomain(saved);

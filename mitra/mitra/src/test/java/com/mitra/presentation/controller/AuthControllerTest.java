@@ -1,10 +1,17 @@
 package com.mitra.presentation.controller;
 
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.when;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
 import com.mitra.application.port.out.UserRepositoryPort;
 import com.mitra.application.usecase.GoogleLoginUseCase;
 import com.mitra.domain.model.User;
-import com.mitra.infrastructure.security.TokenService;
 import com.mitra.infrastructure.security.RateLimitFilter;
+import com.mitra.infrastructure.security.TokenService;
+import java.util.Optional;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
@@ -15,78 +22,78 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
-import java.util.Optional;
-
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.when;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-
 @WebMvcTest(AuthController.class)
 @ActiveProfiles("test")
 @AutoConfigureMockMvc(addFilters = false)
 class AuthControllerTest {
 
-    @Autowired
-    private MockMvc mockMvc;
+    @Autowired private MockMvc mockMvc;
 
-    @MockitoBean
-    private RateLimitFilter rateLimitFilter;
+    @MockitoBean private RateLimitFilter rateLimitFilter;
 
-    @MockitoBean
-    private UserRepositoryPort userRepositoryPort;
+    @MockitoBean private UserRepositoryPort userRepositoryPort;
 
-    @MockitoBean
-    private TokenService tokenService;
+    @MockitoBean private TokenService tokenService;
 
-    @MockitoBean
-    private PasswordEncoder passwordEncoder;
+    @MockitoBean private PasswordEncoder passwordEncoder;
 
-    @MockitoBean
-    private GoogleLoginUseCase googleLoginUseCase;
+    @MockitoBean private GoogleLoginUseCase googleLoginUseCase;
 
     @Test
     void shouldReturnTokenForValidCredentials() throws Exception {
-        User user = User.builder()
-                .id(1L).email("dev@mitra.com").name("Dev").password("$2a$encoded").build();
+        User user =
+                User.builder()
+                        .id(1L)
+                        .email("dev@mitra.com")
+                        .name("Dev")
+                        .password("$2a$encoded")
+                        .build();
 
         when(userRepositoryPort.findByEmail("dev@mitra.com")).thenReturn(Optional.of(user));
         when(passwordEncoder.matches("123456", "$2a$encoded")).thenReturn(true);
         when(tokenService.generateToken(eq("dev@mitra.com"), eq(1L))).thenReturn("jwt-token-123");
 
-        String payload = """
+        String payload =
+                """
                 {
                     "email": "dev@mitra.com",
                     "password": "123456"
                 }
                 """;
 
-        mockMvc.perform(post("/api/v1/auth/login")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(payload))
+        mockMvc.perform(
+                        post("/api/v1/auth/login")
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(payload))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.token").value("jwt-token-123"));
     }
 
     @Test
     void shouldReturn401ForInvalidPassword() throws Exception {
-        User user = User.builder()
-                .id(1L).email("dev@mitra.com").name("Dev").password("$2a$encoded").build();
+        User user =
+                User.builder()
+                        .id(1L)
+                        .email("dev@mitra.com")
+                        .name("Dev")
+                        .password("$2a$encoded")
+                        .build();
 
         when(userRepositoryPort.findByEmail("dev@mitra.com")).thenReturn(Optional.of(user));
         when(passwordEncoder.matches("wrong-password", "$2a$encoded")).thenReturn(false);
 
-        String payload = """
+        String payload =
+                """
                 {
                     "email": "dev@mitra.com",
                     "password": "wrong-password"
                 }
                 """;
 
-        mockMvc.perform(post("/api/v1/auth/login")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(payload))
+        mockMvc.perform(
+                        post("/api/v1/auth/login")
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(payload))
                 .andExpect(status().isUnauthorized());
     }
 
@@ -94,30 +101,34 @@ class AuthControllerTest {
     void shouldReturn401ForNonexistentEmail() throws Exception {
         when(userRepositoryPort.findByEmail("ghost@mitra.com")).thenReturn(Optional.empty());
 
-        String payload = """
+        String payload =
+                """
                 {
                     "email": "ghost@mitra.com",
                     "password": "123456"
                 }
                 """;
 
-        mockMvc.perform(post("/api/v1/auth/login")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(payload))
+        mockMvc.perform(
+                        post("/api/v1/auth/login")
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(payload))
                 .andExpect(status().isUnauthorized());
     }
 
     @Test
     void shouldReturn400ForMissingFields() throws Exception {
-        String payload = """
+        String payload =
+                """
                 {
                     "email": ""
                 }
                 """;
 
-        mockMvc.perform(post("/api/v1/auth/login")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(payload))
+        mockMvc.perform(
+                        post("/api/v1/auth/login")
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(payload))
                 .andExpect(status().isBadRequest());
     }
 }

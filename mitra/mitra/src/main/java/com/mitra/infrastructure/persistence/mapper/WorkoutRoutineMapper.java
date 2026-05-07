@@ -3,7 +3,6 @@ package com.mitra.infrastructure.persistence.mapper;
 import com.mitra.domain.model.WorkoutRoutine;
 import com.mitra.infrastructure.persistence.entity.UserEntity;
 import com.mitra.infrastructure.persistence.entity.WorkoutRoutineEntity;
-
 import java.util.stream.Collectors;
 
 public final class WorkoutRoutineMapper {

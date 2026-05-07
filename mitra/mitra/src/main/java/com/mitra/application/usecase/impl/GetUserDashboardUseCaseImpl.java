@@ -7,15 +7,14 @@ import com.mitra.domain.model.WorkoutSession;
 import com.mitra.presentation.dto.response.DashboardResponseDto;
 import com.mitra.presentation.dto.response.SessionCaloriesResponseDto;
 import com.mitra.presentation.dto.response.WorkoutSessionResponseDto;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Slf4j
 @Service
@@ -25,8 +24,9 @@ public class GetUserDashboardUseCaseImpl implements GetUserDashboardUseCase {
     private final WorkoutSessionRepositoryPort sessionRepositoryPort;
     private final CalculateSessionCaloriesUseCase calculateSessionCaloriesUseCase;
 
-    public GetUserDashboardUseCaseImpl(WorkoutSessionRepositoryPort sessionRepositoryPort,
-                                       CalculateSessionCaloriesUseCase calculateSessionCaloriesUseCase) {
+    public GetUserDashboardUseCaseImpl(
+            WorkoutSessionRepositoryPort sessionRepositoryPort,
+            CalculateSessionCaloriesUseCase calculateSessionCaloriesUseCase) {
         this.sessionRepositoryPort = sessionRepositoryPort;
         this.calculateSessionCaloriesUseCase = calculateSessionCaloriesUseCase;
     }
@@ -34,30 +34,34 @@ public class GetUserDashboardUseCaseImpl implements GetUserDashboardUseCase {
     @Override
     public DashboardResponseDto execute(Long userId) {
         log.debug("Building dashboard for userId={}", userId);
-        List<WorkoutSession> allFinishedSessions = sessionRepositoryPort.findByUserId(userId).stream()
-                .filter(s -> s.getEndTime() != null) // Only count finished ones for metrics
-                .toList();
+        List<WorkoutSession> allFinishedSessions =
+                sessionRepositoryPort.findByUserId(userId).stream()
+                        .filter(s -> s.getEndTime() != null) // Only count finished ones for metrics
+                        .toList();
 
         // Streak calculation
-        List<LocalDate> workoutDates = allFinishedSessions.stream()
-                .map(s -> s.getStartTime().toLocalDate())
-                .distinct()
-                .sorted(Comparator.reverseOrder())
-                .collect(Collectors.toList());
+        List<LocalDate> workoutDates =
+                allFinishedSessions.stream()
+                        .map(s -> s.getStartTime().toLocalDate())
+                        .distinct()
+                        .sorted(Comparator.reverseOrder())
+                        .collect(Collectors.toList());
 
         int currentStreak = calculateStreak(workoutDates);
 
         // This week sessions (last 7 days including today)
         LocalDateTime sevenDaysAgo = LocalDateTime.now().minusDays(7);
-        List<WorkoutSession> last7DaysSessions = allFinishedSessions.stream()
-                .filter(s -> s.getStartTime().isAfter(sevenDaysAgo))
-                .toList();
+        List<WorkoutSession> last7DaysSessions =
+                allFinishedSessions.stream()
+                        .filter(s -> s.getStartTime().isAfter(sevenDaysAgo))
+                        .toList();
         int workoutsThisWeek = last7DaysSessions.size();
 
         // Calories this week
         double totalCaloriesThisWeek = 0.0;
         for (WorkoutSession s : last7DaysSessions) {
-            SessionCaloriesResponseDto calDto = calculateSessionCaloriesUseCase.execute(userId, s.getId());
+            SessionCaloriesResponseDto calDto =
+                    calculateSessionCaloriesUseCase.execute(userId, s.getId());
             totalCaloriesThisWeek += calDto.totalCalories();
         }
 
@@ -65,25 +69,32 @@ public class GetUserDashboardUseCaseImpl implements GetUserDashboardUseCase {
         List<WorkoutSession> allSessionsInclActive = sessionRepositoryPort.findByUserId(userId);
         WorkoutSessionResponseDto lastWorkoutDto = null;
         if (!allSessionsInclActive.isEmpty()) {
-            WorkoutSession lastSession = allSessionsInclActive.stream()
-                    .max(Comparator.comparing(WorkoutSession::getStartTime))
-                    .orElse(null);
+            WorkoutSession lastSession =
+                    allSessionsInclActive.stream()
+                            .max(Comparator.comparing(WorkoutSession::getStartTime))
+                            .orElse(null);
 
             if (lastSession != null) {
-                lastWorkoutDto = new WorkoutSessionResponseDto(
-                    lastSession.getId(),
-                    lastSession.getUserId(),
-                    lastSession.getRoutineId(),
-                    lastSession.getStartTime(),
-                    lastSession.getEndTime(),
-                    lastSession.isActive(),
-                    java.util.Collections.emptyList()
-                );
+                lastWorkoutDto =
+                        new WorkoutSessionResponseDto(
+                                lastSession.getId(),
+                                lastSession.getUserId(),
+                                lastSession.getRoutineId(),
+                                lastSession.getStartTime(),
+                                lastSession.getEndTime(),
+                                lastSession.isActive(),
+                                java.util.Collections.emptyList());
             }
         }
 
-        log.debug("Dashboard built for userId={}: streak={} workouts={} calories={}", userId, currentStreak, workoutsThisWeek, totalCaloriesThisWeek);
-        return new DashboardResponseDto(workoutsThisWeek, currentStreak, totalCaloriesThisWeek, lastWorkoutDto);
+        log.debug(
+                "Dashboard built for userId={}: streak={} workouts={} calories={}",
+                userId,
+                currentStreak,
+                workoutsThisWeek,
+                totalCaloriesThisWeek);
+        return new DashboardResponseDto(
+                workoutsThisWeek, currentStreak, totalCaloriesThisWeek, lastWorkoutDto);
     }
 
     private int calculateStreak(List<LocalDate> sortedDatesDesc) {

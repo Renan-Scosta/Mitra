@@ -1,23 +1,21 @@
 package com.mitra.infrastructure.persistence.adapter;
 
-import com.mitra.infrastructure.persistence.AbstractIntegrationTest;
+import static org.junit.jupiter.api.Assertions.*;
 
 import com.mitra.domain.model.*;
 import com.mitra.domain.model.enums.Gender;
 import com.mitra.domain.model.enums.TrackingType;
+import com.mitra.infrastructure.persistence.AbstractIntegrationTest;
 import com.mitra.infrastructure.persistence.repository.*;
+import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.data.jpa.test.autoconfigure.DataJpaTest;
 import org.springframework.test.context.ActiveProfiles;
-
-import java.math.BigDecimal;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.util.List;
-
-import static org.junit.jupiter.api.Assertions.*;
 
 @DataJpaTest
 @ActiveProfiles("test")
@@ -35,38 +33,61 @@ class SetRecordRepositoryAdapterTest extends AbstractIntegrationTest {
 
     @BeforeEach
     void setUp() {
-        adapter = new SetRecordRepositoryAdapter(setRecordJpaRepository, sessionJpaRepository, exerciseJpaRepository);
+        adapter =
+                new SetRecordRepositoryAdapter(
+                        setRecordJpaRepository, sessionJpaRepository, exerciseJpaRepository);
 
         UserRepositoryAdapter userAdapter = new UserRepositoryAdapter(userJpaRepository);
-        ExerciseRepositoryAdapter exerciseAdapter = new ExerciseRepositoryAdapter(exerciseJpaRepository);
-        WorkoutRoutineRepositoryAdapter routineAdapter = new WorkoutRoutineRepositoryAdapter(routineJpaRepository, userJpaRepository);
-        WorkoutSessionRepositoryAdapter sessionAdapter = new WorkoutSessionRepositoryAdapter(sessionJpaRepository, userJpaRepository, routineJpaRepository);
+        ExerciseRepositoryAdapter exerciseAdapter =
+                new ExerciseRepositoryAdapter(exerciseJpaRepository);
+        WorkoutRoutineRepositoryAdapter routineAdapter =
+                new WorkoutRoutineRepositoryAdapter(routineJpaRepository, userJpaRepository);
+        WorkoutSessionRepositoryAdapter sessionAdapter =
+                new WorkoutSessionRepositoryAdapter(
+                        sessionJpaRepository, userJpaRepository, routineJpaRepository);
 
-        User user = userAdapter.save(User.builder()
-                .email("set@mitra.com").name("Set User").password("hashed")
-                .birthDate(LocalDate.of(1992, 8, 20)).gender(Gender.MALE).heightCm(178)
-                .build());
+        User user =
+                userAdapter.save(
+                        User.builder()
+                                .email("set@mitra.com")
+                                .name("Set User")
+                                .password("hashed")
+                                .birthDate(LocalDate.of(1992, 8, 20))
+                                .gender(Gender.MALE)
+                                .heightCm(178)
+                                .build());
 
-        WorkoutRoutine routine = routineAdapter.save(WorkoutRoutine.builder()
-                .userId(user.getId()).name("Test Routine").build());
+        WorkoutRoutine routine =
+                routineAdapter.save(
+                        WorkoutRoutine.builder().userId(user.getId()).name("Test Routine").build());
 
-        savedSession = sessionAdapter.save(WorkoutSession.builder()
-                .userId(user.getId()).routineId(routine.getId())
-                .startTime(LocalDateTime.now()).build());
+        savedSession =
+                sessionAdapter.save(
+                        WorkoutSession.builder()
+                                .userId(user.getId())
+                                .routineId(routine.getId())
+                                .startTime(LocalDateTime.now())
+                                .build());
 
-        savedExercise = exerciseAdapter.save(Exercise.builder()
-                .name("Bench Press").muscleGroup("Chest")
-                .metFactor(new BigDecimal("5.0")).trackingType(TrackingType.WEIGHT_REPS).build());
+        savedExercise =
+                exerciseAdapter.save(
+                        Exercise.builder()
+                                .name("Bench Press")
+                                .muscleGroup("Chest")
+                                .metFactor(new BigDecimal("5.0"))
+                                .trackingType(TrackingType.WEIGHT_REPS)
+                                .build());
     }
 
     @Test
     void shouldSaveAndFindBySessionId() {
-        SetRecord record = SetRecord.builder()
-                .sessionId(savedSession.getId())
-                .exercise(savedExercise)
-                .weightKg(new BigDecimal("80.00"))
-                .reps(10)
-                .build();
+        SetRecord record =
+                SetRecord.builder()
+                        .sessionId(savedSession.getId())
+                        .exercise(savedExercise)
+                        .weightKg(new BigDecimal("80.00"))
+                        .reps(10)
+                        .build();
 
         SetRecord saved = adapter.save(record);
 
@@ -80,15 +101,22 @@ class SetRecordRepositoryAdapterTest extends AbstractIntegrationTest {
 
     @Test
     void shouldSaveTimeOnlyRecord() {
-        Exercise plank = new ExerciseRepositoryAdapter(exerciseJpaRepository).save(
-                Exercise.builder().name("Plank").muscleGroup("Core")
-                        .metFactor(new BigDecimal("3.0")).trackingType(TrackingType.TIME_ONLY).build());
+        Exercise plank =
+                new ExerciseRepositoryAdapter(exerciseJpaRepository)
+                        .save(
+                                Exercise.builder()
+                                        .name("Plank")
+                                        .muscleGroup("Core")
+                                        .metFactor(new BigDecimal("3.0"))
+                                        .trackingType(TrackingType.TIME_ONLY)
+                                        .build());
 
-        SetRecord record = SetRecord.builder()
-                .sessionId(savedSession.getId())
-                .exercise(plank)
-                .durationSeconds(60)
-                .build();
+        SetRecord record =
+                SetRecord.builder()
+                        .sessionId(savedSession.getId())
+                        .exercise(plank)
+                        .durationSeconds(60)
+                        .build();
 
         SetRecord saved = adapter.save(record);
 

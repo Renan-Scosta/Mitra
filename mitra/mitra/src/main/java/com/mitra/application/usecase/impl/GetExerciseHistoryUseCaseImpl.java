@@ -8,15 +8,14 @@ import com.mitra.domain.model.Exercise;
 import com.mitra.domain.model.SetRecord;
 import com.mitra.domain.model.WorkoutSession;
 import com.mitra.presentation.dto.response.ExerciseHistoryResponseDto;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.stereotype.Service;
-
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Service;
 
 @Slf4j
 @Service
@@ -38,28 +37,33 @@ public class GetExerciseHistoryUseCaseImpl implements GetExerciseHistoryUseCase 
     @Override
     public ExerciseHistoryResponseDto execute(Long userId, Long exerciseId) {
         log.debug("Fetching exercise history userId={} exerciseId={}", userId, exerciseId);
-        Exercise exercise = exerciseRepositoryPort.findById(exerciseId)
-                .orElseThrow(() -> new IllegalArgumentException("Exercise not found"));
+        Exercise exercise =
+                exerciseRepositoryPort
+                        .findById(exerciseId)
+                        .orElseThrow(() -> new IllegalArgumentException("Exercise not found"));
 
-        List<SetRecord> userSets = setRecordRepositoryPort.findByUserIdAndExerciseId(userId, exerciseId);
+        List<SetRecord> userSets =
+                setRecordRepositoryPort.findByUserIdAndExerciseId(userId, exerciseId);
 
         if (userSets.isEmpty()) {
             return new ExerciseHistoryResponseDto(exerciseId, exercise.getName(), List.of());
         }
 
         // Group sets by sessionId
-        Map<Long, List<SetRecord>> setsBySession = userSets.stream()
-                .collect(Collectors.groupingBy(SetRecord::getSessionId));
+        Map<Long, List<SetRecord>> setsBySession =
+                userSets.stream().collect(Collectors.groupingBy(SetRecord::getSessionId));
 
         // Fetch all relevant sessions to get their start times
         // We do this by hitting the repository over the distinct session IDs
-        // In a real high-perf scenario, a JOIN query would be more efficient, but since user histories
+        // In a real high-perf scenario, a JOIN query would be more efficient, but since user
+        // histories
         // per exercise aren't massive, this is acceptable. We'll map them by ID.
-        Map<Long, WorkoutSession> sessionsMap = setsBySession.keySet().stream()
-                .map(sessionRepositoryPort::findById)
-                .filter(java.util.Optional::isPresent)
-                .map(java.util.Optional::get)
-                .collect(Collectors.toMap(WorkoutSession::getId, Function.identity()));
+        Map<Long, WorkoutSession> sessionsMap =
+                setsBySession.keySet().stream()
+                        .map(sessionRepositoryPort::findById)
+                        .filter(java.util.Optional::isPresent)
+                        .map(java.util.Optional::get)
+                        .collect(Collectors.toMap(WorkoutSession::getId, Function.identity()));
 
         List<ExerciseHistoryResponseDto.SessionHistoryDto> sessionDtos = new ArrayList<>();
 
@@ -67,27 +71,29 @@ public class GetExerciseHistoryUseCaseImpl implements GetExerciseHistoryUseCase 
             Long sessionId = entry.getKey();
             List<SetRecord> sets = entry.getValue();
             WorkoutSession session = sessionsMap.get(sessionId);
-            
-            if (session != null) {
-                List<ExerciseHistoryResponseDto.SetHistoryDto> setDtos = sets.stream()
-                        .map(s -> new ExerciseHistoryResponseDto.SetHistoryDto(s.getWeightKg(), s.getReps(), s.getDurationSeconds()))
-                        .toList();
 
-                sessionDtos.add(new ExerciseHistoryResponseDto.SessionHistoryDto(
-                        sessionId,
-                        session.getStartTime(),
-                        setDtos
-                ));
+            if (session != null) {
+                List<ExerciseHistoryResponseDto.SetHistoryDto> setDtos =
+                        sets.stream()
+                                .map(
+                                        s ->
+                                                new ExerciseHistoryResponseDto.SetHistoryDto(
+                                                        s.getWeightKg(),
+                                                        s.getReps(),
+                                                        s.getDurationSeconds()))
+                                .toList();
+
+                sessionDtos.add(
+                        new ExerciseHistoryResponseDto.SessionHistoryDto(
+                                sessionId, session.getStartTime(), setDtos));
             }
         }
 
         // Sort descending by date (most recent first)
-        sessionDtos.sort(Comparator.comparing(ExerciseHistoryResponseDto.SessionHistoryDto::date).reversed());
+        sessionDtos.sort(
+                Comparator.comparing(ExerciseHistoryResponseDto.SessionHistoryDto::date)
+                        .reversed());
 
-        return new ExerciseHistoryResponseDto(
-                exerciseId,
-                exercise.getName(),
-                sessionDtos
-        );
+        return new ExerciseHistoryResponseDto(exerciseId, exercise.getName(), sessionDtos);
     }
 }
