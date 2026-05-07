@@ -6,8 +6,8 @@ services:
     container_name: mitra-db
     environment:
       POSTGRES_DB: mitra
-      POSTGRES_USER: mitra
-      POSTGRES_PASSWORD: mitra
+      POSTGRES_USER: ${DB_USERNAME:-mitra}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-mitra}
     ports:
       - "5432:5432"
     volumes:
@@ -27,9 +27,9 @@ services:
       postgres:
         condition: service_healthy
     environment:
-      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/mitra
-      SPRING_DATASOURCE_USERNAME: mitra
-      SPRING_DATASOURCE_PASSWORD: mitra
+      DB_URL: jdbc:postgresql://postgres:5432/mitra
+      DB_USERNAME: mitra
+      DB_PASSWORD: ${DB_PASSWORD:-mitra}
       JWT_SECRET: ${JWT_SECRET:-change-me-in-production-minimum-32-chars}
       GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID:-not-set}
       GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET:-not-set}

@@ -599,7 +599,29 @@ O projeto utiliza o **GitHub Actions** para Integração e Entrega Contínuas em
 
 ---
 
-## 16. Como Rodar Localmente
+## 16. Secret Management
+
+A aplicação adota a prática de **Fail-Fast** para secrets críticos (ex: `JWT_SECRET`). Se a variável de ambiente não for fornecida, a aplicação se recusa a iniciar, prevenindo o uso de chaves previsíveis.
+
+### Fluxo de Secrets por Ambiente
+
+| Ambiente | Estratégia | Arquivo/Ferramenta |
+|---|---|---|
+| **Local / Dev** | Arquivo `.env` (ignorado pelo git). Existe um `.env.example` versionado como template. | `docker-compose.yml` consome o `.env` automaticamente. |
+| **CI (GitHub Actions)** | Variáveis mockadas injetadas diretamente no workflow. | `.github/workflows/ci.yml` |
+| **Produção** | Injeção via orquestrador (Docker Secrets, K8s Secrets, etc.). | N/A |
+
+### Secrets Obrigatórios
+- `DB_PASSWORD`: Senha do banco de dados PostgreSQL.
+- `JWT_SECRET`: Chave simétrica usada para assinar os tokens JWT (mínimo 32 caracteres).
+
+### Secrets Opcionais
+- `GOOGLE_CLIENT_ID` e `GOOGLE_CLIENT_SECRET`: Necessários apenas se o login via Google OAuth2 for utilizado.
+- `CORS_ALLOWED_ORIGINS`: Restringe as origens CORS (em dev, usa `*`).
+
+---
+
+## 17. Como Rodar Localmente
 
 ### Opção 1: Usando Docker Compose (Recomendado)
 A aplicação está containerizada usando um Dockerfile multi-stage com layered JARs.

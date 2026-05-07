@@ -15,7 +15,7 @@ import org.springframework.stereotype.Service;
 @Service
 public class TokenService {
 
-    @Value("${api.security.token.secret:my-super-secret-mitra-key}")
+    @Value("${api.security.token.secret}")
     private String secret;
 
     public String generateToken(String email, Long userId) {
