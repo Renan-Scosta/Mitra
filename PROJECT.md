@@ -582,7 +582,24 @@ A pipeline do GitHub Actions roda `./mvnw verify`, o que implicitamente aciona o
 
 ---
 
-## 15. Como Rodar Localmente
+## 15. CI/CD Pipeline
+
+O projeto utiliza o **GitHub Actions** para Integração e Entrega Contínuas em um único workflow unificado (`ci.yml`).
+
+### CI (Continuous Integration)
+- **Triggers**: Push e Pull Request na branch `main`.
+- **Jobs**: `build` (rodando `./mvnw verify`).
+- **Função**: Compila o código, roda os 149 testes via TestContainers, exige 80% de cobertura no JaCoCo, e verifica a formatação pelo Spotless.
+
+### CD (Continuous Delivery)
+- **Triggers**: Apenas Push na branch `main`.
+- **Jobs**: `docker` (rodando `docker buildx` e `docker push`).
+- **Função**: Roda apenas se o job `build` for aprovado (`needs: build`). Realiza o build multi-stage da imagem otimizada com as layers do Spring Boot e faz o push para o **GitHub Container Registry (GHCR)**.
+- **Tags**: A imagem é salva como `ghcr.io/renan-scosta/mitra:<commit-sha>` e `ghcr.io/renan-scosta/mitra:latest`.
+
+---
+
+## 16. Como Rodar Localmente
 
 ### Opção 1: Usando Docker Compose (Recomendado)
 A aplicação está containerizada usando um Dockerfile multi-stage com layered JARs.
