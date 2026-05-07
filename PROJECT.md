@@ -517,6 +517,24 @@ Foi implementado um indicador customizado (`DatabaseLatencyHealthIndicator`) que
 
 ---
 
+## 11.8. Code Style (Spotless)
+
+### Padrão de Formatação
+O projeto utiliza o **Spotless** configurado com `google-java-format` utilizando o estilo **AOSP** (4 espaços de indentação). Toda a formatação do código (indentação, imports, espaçamento, limite de colunas) é imposta de maneira automatizada e não deve ser ajustada "na mão".
+
+### Comandos Importantes
+```bash
+./mvnw spotless:check    # Apenas verifica (Usado no CI pipeline)
+./mvnw spotless:apply    # Formata automaticamente os arquivos do projeto
+```
+
+### CI / CD
+A pipeline do GitHub Actions roda `./mvnw verify`, o que implicitamente aciona o `spotless:check`. Qualquer commit com código mal formatado causará **falha no build**.
+
+> **Regra de Ouro**: Rode `./mvnw spotless:apply` antes de commitar qualquer alteração.
+
+---
+
 ## 12. Design Patterns
 
 | Pattern | Onde | Por quê |
@@ -536,7 +554,8 @@ Foi implementado um indicador customizado (`DatabaseLatencyHealthIndicator`) que
 
 ```
 [ ] 1. ./mvnw test passa com 0 falhas e 0 erros
-[ ] 2. Código novo tem cobertura de teste correspondente (ratio 1:1)
+[ ] 2. ./mvnw spotless:apply executado
+[ ] 3. Código novo tem cobertura de teste correspondente (ratio 1:1)
 [ ] 3. Nenhum TODO/FIXME novo sem issue associada
 [ ] 4. Novos arquivos seguem a estrutura Hexagonal (domain puro, ports na application, adapters na infrastructure)
 [ ] 5. Commit message segue Conventional Commits
@@ -565,12 +584,20 @@ Foi implementado um indicador customizado (`DatabaseLatencyHealthIndicator`) que
 
 ## 15. Como Rodar Localmente
 
-### Pré-requisitos
+### Opção 1: Usando Docker Compose (Recomendado)
+A aplicação está containerizada usando um Dockerfile multi-stage com layered JARs.
+```bash
+# Na raiz do projeto
+docker compose up --build -d
+```
+A API ficará acessível em `http://localhost:8080`. O PostgreSQL rodará na porta `5432` automaticamente.
+
+### Opção 2: Manualmente via Maven
+**Pré-requisitos:**
 - Java 21+
 - PostgreSQL 16+ rodando em `localhost:5432` com database `mitra`
 - Variável `DB_PASSWORD` configurada
 
-### Comandos
 ```bash
 cd mitra/mitra
 ./mvnw spring-boot:run     # Sobe em http://localhost:8080
