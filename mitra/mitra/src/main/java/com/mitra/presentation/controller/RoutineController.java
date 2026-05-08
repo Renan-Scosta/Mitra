@@ -4,6 +4,7 @@ import com.mitra.application.usecase.AddRoutineExerciseUseCase;
 import com.mitra.application.usecase.CreateWorkoutRoutineUseCase;
 import com.mitra.application.usecase.GetWorkoutRoutinesUseCase;
 import com.mitra.domain.model.User;
+import com.mitra.presentation.ApiVersion;
 import com.mitra.presentation.dto.request.AddRoutineExerciseRequestDto;
 import com.mitra.presentation.dto.request.CreateRoutineRequestDto;
 import com.mitra.presentation.dto.response.RoutineExerciseResponseDto;
@@ -23,7 +24,7 @@ import org.springframework.web.bind.annotation.*;
         name = "Workout Routines",
         description = "Endpoints for managing workout routines and adding exercises")
 @RestController
-@RequestMapping("/api/v1/routines")
+@RequestMapping(ApiVersion.V1 + "/routines")
 public class RoutineController {
 
     private final CreateWorkoutRoutineUseCase createWorkoutRoutineUseCase;
@@ -49,7 +50,7 @@ public class RoutineController {
             @Valid @RequestBody CreateRoutineRequestDto request,
             @AuthenticationPrincipal User currentUser) {
         Long routineId = createWorkoutRoutineUseCase.execute(currentUser.getId(), request);
-        return ResponseEntity.created(URI.create("/api/v1/routines/" + routineId)).build();
+        return ResponseEntity.created(URI.create(ApiVersion.V1 + "/routines/" + routineId)).build();
     }
 
     @Operation(

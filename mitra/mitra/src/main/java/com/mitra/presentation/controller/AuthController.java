@@ -4,6 +4,7 @@ import com.mitra.application.port.out.UserRepositoryPort;
 import com.mitra.application.usecase.GoogleLoginUseCase;
 import com.mitra.domain.model.User;
 import com.mitra.infrastructure.security.TokenService;
+import com.mitra.presentation.ApiVersion;
 import com.mitra.presentation.dto.request.GoogleLoginRequestDto;
 import com.mitra.presentation.dto.request.LoginRequestDto;
 import com.mitra.presentation.dto.response.TokenResponseDto;
@@ -18,7 +19,7 @@ import org.springframework.web.bind.annotation.*;
 
 @Tag(name = "Authentication", description = "Endpoints for user authentication")
 @RestController
-@RequestMapping("/api/v1/auth")
+@RequestMapping(ApiVersion.V1 + "/auth")
 public class AuthController {
 
     private final UserRepositoryPort userRepositoryPort;

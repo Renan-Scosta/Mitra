@@ -1,0 +1,32 @@
+version: '3.8'
+
+services:
+  postgres:
+    container_name: mitra-staging-db
+    environment:
+      POSTGRES_USER: ${STAGING_DB_USERNAME:-mitra_staging}
+      POSTGRES_PASSWORD: ${STAGING_DB_PASSWORD:-mitra_staging}
+    ports:
+      - "5433:5432"
+    volumes:
+      - mitra-staging-pgdata:/var/lib/postgresql/data
+
+  app:
+    image: ghcr.io/renan-scosta/mitra:latest
+    container_name: mitra-staging-app
+    build:
+      context: .
+      dockerfile: /dev/null # Disable build for staging, force using image
+    environment:
+      SPRING_PROFILES_ACTIVE: staging
+      DB_URL: jdbc:postgresql://postgres:5432/mitra
+      DB_USERNAME: ${STAGING_DB_USERNAME:-mitra_staging}
+      DB_PASSWORD: ${STAGING_DB_PASSWORD:-mitra_staging}
+      JWT_SECRET: ${STAGING_JWT_SECRET:-change-me-in-staging-minimum-32-chars}
+      GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID:-not-set}
+      GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET:-not-set}
+    ports:
+      - "8081:8080"
+
+volumes:
+  mitra-staging-pgdata:

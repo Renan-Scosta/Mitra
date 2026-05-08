@@ -7,6 +7,7 @@ import com.mitra.application.usecase.GetWorkoutSessionUseCase;
 import com.mitra.application.usecase.LogSetRecordUseCase;
 import com.mitra.application.usecase.StartWorkoutSessionUseCase;
 import com.mitra.domain.model.User;
+import com.mitra.presentation.ApiVersion;
 import com.mitra.presentation.dto.request.LogSetRequestDto;
 import com.mitra.presentation.dto.request.StartSessionRequestDto;
 import com.mitra.presentation.dto.response.SessionCaloriesResponseDto;
@@ -30,7 +31,7 @@ import org.springframework.web.bind.annotation.*;
         name = "Workout Sessions",
         description = "Endpoints for executing and tracking workout routines")
 @RestController
-@RequestMapping("/api/v1/sessions")
+@RequestMapping(ApiVersion.V1 + "/sessions")
 public class WorkoutSessionController {
 
     private final StartWorkoutSessionUseCase startWorkoutSessionUseCase;
@@ -65,7 +66,7 @@ public class WorkoutSessionController {
             @Valid @RequestBody StartSessionRequestDto request,
             @AuthenticationPrincipal User currentUser) {
         Long sessionId = startWorkoutSessionUseCase.execute(currentUser.getId(), request);
-        return ResponseEntity.created(URI.create("/api/v1/sessions/" + sessionId)).build();
+        return ResponseEntity.created(URI.create(ApiVersion.V1 + "/sessions/" + sessionId)).build();
     }
 
     @Operation(

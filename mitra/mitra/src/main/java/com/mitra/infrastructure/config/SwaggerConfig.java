@@ -18,7 +18,7 @@ public class SwaggerConfig {
                 .info(
                         new Info()
                                 .title("Mitra API")
-                                .version("1.0.0")
+                                .version("v1")
                                 .description(
                                         "API documentation for the Mitra fitness tracking"
                                                 + " application."))

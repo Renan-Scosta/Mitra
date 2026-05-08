@@ -1,6 +1,7 @@
 package com.mitra.infrastructure.security;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.mitra.presentation.ApiVersion;
 import io.github.bucket4j.Bandwidth;
 import io.github.bucket4j.Bucket;
 import io.github.bucket4j.ConsumptionProbe;
@@ -110,10 +111,11 @@ public class RateLimitFilter extends OncePerRequestFilter {
      * rate-limited.
      */
     private ConcurrentHashMap<String, Bucket> resolveBucketMap(String path) {
-        if (path.equals("/api/v1/auth/login") || path.equals("/api/v1/auth/google")) {
+        if (path.equals(ApiVersion.V1 + "/auth/login")
+                || path.equals(ApiVersion.V1 + "/auth/google")) {
             return loginBuckets;
         }
-        if (path.equals("/api/v1/users")) {
+        if (path.equals(ApiVersion.V1 + "/users")) {
             return registerBuckets;
         }
         return null;
@@ -121,7 +123,7 @@ public class RateLimitFilter extends OncePerRequestFilter {
 
     /** Creates a new bucket with the appropriate configuration for the given path. */
     private Bucket createBucket(String path) {
-        if (path.equals("/api/v1/users")) {
+        if (path.equals(ApiVersion.V1 + "/users")) {
             return Bucket.builder()
                     .addLimit(
                             Bandwidth.simple(registerRequests, Duration.ofMinutes(registerMinutes)))

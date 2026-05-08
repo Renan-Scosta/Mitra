@@ -8,6 +8,7 @@ import com.mitra.application.usecase.RegisterUserUseCase;
 import com.mitra.application.usecase.UpdateUserPasswordUseCase;
 import com.mitra.application.usecase.UpdateUserProfileUseCase;
 import com.mitra.domain.model.User;
+import com.mitra.presentation.ApiVersion;
 import com.mitra.presentation.dto.request.CreateUserRequestDto;
 import com.mitra.presentation.dto.request.UpdateUserPasswordRequestDto;
 import com.mitra.presentation.dto.request.UpdateUserProfileRequestDto;
@@ -29,7 +30,7 @@ import org.springframework.web.bind.annotation.*;
 
 @Tag(name = "Users", description = "Endpoints for user management and baseline body metrics")
 @RestController
-@RequestMapping("/api/v1/users")
+@RequestMapping(ApiVersion.V1 + "/users")
 public class UserController {
 
     private final CalculateBmrUseCase calculateBmrUseCase;
@@ -69,7 +70,7 @@ public class UserController {
         }
 
         Long userId = registerUserUseCase.execute(request);
-        return ResponseEntity.created(URI.create("/api/v1/users/" + userId)).build();
+        return ResponseEntity.created(URI.create(ApiVersion.V1 + "/users/" + userId)).build();
     }
 
     @Operation(

@@ -5,6 +5,7 @@ import com.mitra.application.usecase.GetAllExercisesUseCase;
 import com.mitra.application.usecase.GetExerciseHistoryUseCase;
 import com.mitra.application.usecase.GetPersonalRecordsUseCase;
 import com.mitra.domain.model.User;
+import com.mitra.presentation.ApiVersion;
 import com.mitra.presentation.dto.request.CreateExerciseRequestDto;
 import com.mitra.presentation.dto.response.ExerciseHistoryResponseDto;
 import com.mitra.presentation.dto.response.ExerciseResponseDto;
@@ -24,7 +25,7 @@ import org.springframework.web.bind.annotation.*;
 
 @Tag(name = "Exercises", description = "Endpoints for managing the exercise catalog")
 @RestController
-@RequestMapping("/api/v1/exercises")
+@RequestMapping(ApiVersion.V1 + "/exercises")
 public class ExerciseController {
 
     private final CreateExerciseUseCase createExerciseUseCase;
@@ -53,7 +54,8 @@ public class ExerciseController {
     public ResponseEntity<Void> createExercise(
             @Valid @RequestBody CreateExerciseRequestDto request) {
         Long exerciseId = createExerciseUseCase.execute(request);
-        return ResponseEntity.created(URI.create("/api/v1/exercises/" + exerciseId)).build();
+        return ResponseEntity.created(URI.create(ApiVersion.V1 + "/exercises/" + exerciseId))
+                .build();
     }
 
     @Operation(

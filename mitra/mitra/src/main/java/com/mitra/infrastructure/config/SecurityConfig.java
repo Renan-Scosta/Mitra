@@ -2,6 +2,7 @@ package com.mitra.infrastructure.config;
 
 import com.mitra.infrastructure.security.RateLimitFilter;
 import com.mitra.infrastructure.security.SecurityFilter;
+import com.mitra.presentation.ApiVersion;
 import java.util.Arrays;
 import java.util.List;
 import org.springframework.beans.factory.annotation.Value;
@@ -75,10 +76,10 @@ public class SecurityConfig {
                                         .permitAll()
                                         .requestMatchers(
                                                 HttpMethod.POST,
-                                                "/api/v1/auth/login",
-                                                "/api/v1/auth/google")
+                                                ApiVersion.V1 + "/auth/login",
+                                                ApiVersion.V1 + "/auth/google")
                                         .permitAll()
-                                        .requestMatchers(HttpMethod.POST, "/api/v1/users")
+                                        .requestMatchers(HttpMethod.POST, ApiVersion.V1 + "/users")
                                         .permitAll()
                                         .requestMatchers("/actuator/**")
                                         .hasRole("ADMIN")

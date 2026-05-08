@@ -3,6 +3,7 @@ package com.mitra.presentation.controller;
 import com.mitra.application.usecase.CreateBodyMeasurementUseCase;
 import com.mitra.application.usecase.GetBodyMeasurementsUseCase;
 import com.mitra.domain.model.User;
+import com.mitra.presentation.ApiVersion;
 import com.mitra.presentation.dto.request.CreateBodyMeasurementRequestDto;
 import com.mitra.presentation.dto.response.BodyMeasurementResponseDto;
 import io.swagger.v3.oas.annotations.Operation;
@@ -20,7 +21,7 @@ import org.springframework.web.bind.annotation.*;
         name = "Body Measurements",
         description = "Endpoints for tracking weight and body composition over time")
 @RestController
-@RequestMapping("/api/v1/measurements")
+@RequestMapping(ApiVersion.V1 + "/measurements")
 public class BodyMeasurementController {
 
     private final CreateBodyMeasurementUseCase createBodyMeasurementUseCase;
@@ -43,7 +44,8 @@ public class BodyMeasurementController {
             @Valid @RequestBody CreateBodyMeasurementRequestDto request,
             @AuthenticationPrincipal User currentUser) {
         Long measurementId = createBodyMeasurementUseCase.execute(currentUser.getId(), request);
-        return ResponseEntity.created(URI.create("/api/v1/measurements/" + measurementId)).build();
+        return ResponseEntity.created(URI.create(ApiVersion.V1 + "/measurements/" + measurementId))
+                .build();
     }
 
     @Operation(

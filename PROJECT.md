@@ -2,13 +2,13 @@
 
 > **Documento vivo.** Este arquivo é o onboarding doc da equipe (humanos + agentes de IA).
 > Deve ser lido integralmente antes de qualquer interação com o projeto.
-> **Última atualização**: 2026-04-30
+> **Última atualização**: 2026-05-07
 
 ---
 
 ## 1. Visão Geral
 
-**Mitra** é uma API REST de acompanhamento fitness construída sobre **Spring Boot 4** com arquitetura **Hexagonal (Ports & Adapters)**.
+**Mitra** é uma plataforma de acompanhamento fitness composta por uma **API REST** (Spring Boot 4, arquitetura Hexagonal) e um **aplicativo mobile** (React Native + Expo).
 O sistema permite registrar usuários, gerenciar perfis, montar rotinas de treino, executar sessões, registrar séries, calcular métricas fisiológicas (BMR, calorias via MET), consultar personal records, e visualizar dashboards de progresso.
 
 ### Core Values
@@ -24,7 +24,7 @@ O sistema permite registrar usuários, gerenciar perfis, montar rotinas de trein
 
 ---
 
-## 2. Stack Tecnológico
+## 2. Stack Tecnológico — Backend (API)
 
 | Camada | Tecnologia | Versão |
 |---|---|---|
@@ -43,6 +43,75 @@ O sistema permite registrar usuários, gerenciar perfis, montar rotinas de trein
 | **Rate Limiting** | Bucket4j (Token Bucket, in-memory) | 8.15.0 |
 | **Boilerplate** | Lombok | via Spring Boot BOM |
 | **Testes** | JUnit 5 + Mockito + MockMvc | via Spring Boot BOM |
+
+---
+
+## 2.5. Stack Tecnológico — Mobile (App)
+
+### Foundation
+
+| Camada | Tecnologia | Justificativa |
+|---|---|---|
+| **Linguagem** | TypeScript | Tipagem estática rigorosa, espelha a segurança de tipos do Java no backend |
+| **Framework** | React Native | Cross-platform nativo (iOS + Android) com ecossistema maduro |
+| **Plataforma** | Expo (Managed Workflow) | Elimina configuração de Xcode/Android Studio. Build, test e deploy via CLI. Hot reload no celular via QR Code |
+| **Routing** | Expo Router (file-based) | Routing automático baseado em arquivos (como Next.js). Construído sobre React Navigation |
+
+### Data Layer
+
+| Camada | Tecnologia | Justificativa |
+|---|---|---|
+| **HTTP Client** | Axios | Interceptors para injeção automática de JWT. Superior ao `fetch` nativo para API communication |
+| **Server State** | TanStack Query (React Query) | Cache inteligente, revalidação, retry, deduplicação. Elimina `useEffect` + `useState` manual em cada tela |
+| **Client State** | Zustand | State management minimalista para auth state, sessão de treino ativa e timer. Sem boilerplate (vs. Redux) |
+| **Validação** | Zod | Schemas que espelham os DTOs do backend. Erros de contrato são capturados em build time, não em runtime |
+| **Forms** | React Hook Form + Zod | Validação client-side para login, registro, criação de rotina, log de série |
+
+### UI / UX
+
+| Camada | Tecnologia | Justificativa |
+|---|---|---|
+| **Styling** | NativeWind (Tailwind CSS for RN) | Produtividade via utility-first CSS. `className="bg-zinc-900 p-4 rounded-2xl"` |
+| **Component Library** | Gluestack UI ou Tamagui | Componentes acessíveis e estilizados, integrados com NativeWind |
+| **Ícones** | Lucide React Native | 1400+ ícones consistentes. Inclui ícones fitness (dumbbell, timer, flame, trophy) |
+| **Animações** | React Native Reanimated | Micro-animações de treino: progresso de série, timer circular, transições |
+| **Gráficos** | Victory Native | Gráficos de progressão, volume por grupo muscular, histórico de peso |
+
+### Segurança & Armazenamento
+
+| Camada | Tecnologia | Justificativa |
+|---|---|---|
+| **Token Storage** | Expo SecureStore | JWT salvo na camada criptografada do OS (Keychain iOS / EncryptedSharedPreferences Android) |
+| **Auth Flow** | Custom hook `useAuth()` | Gerencia login, logout, redirecionamento automático. Sem lib externa — fluxo JWT do Mitra é simples |
+
+### Ferramentas Fitness-Específicas
+
+| Ferramenta | Tecnologia | Justificativa |
+|---|---|---|
+| **Keep Awake** | Expo KeepAwake | Impede bloqueio de tela durante sessão de treino ativa |
+| **Haptic Feedback** | Expo Haptics | Vibração tátil ao completar série, bater PR, finalizar sessão |
+| **Rest Timer** | Custom hook + Reanimated | Timer circular animado com haptic ao zerar. Sem lib externa |
+
+### Estrutura de Pastas (Mobile)
+
+```
+mitra-mobile/
+├── app/                    ← Expo Router (file-based routing)
+│   ├── (auth)/             ← Grupo: Login, Register
+│   ├── (tabs)/             ← Grupo: Home, Routines, History, Profile
+│   └── workout/[id].tsx    ← Tela de treino ativo (full-screen)
+├── src/
+│   ├── api/                ← Axios instance + endpoints tipados
+│   │   ├── client.ts       ← Axios config + interceptor JWT
+│   │   ├── auth.ts         ← login(), googleLogin()
+│   │   ├── sessions.ts     ← startSession(), logSet(), finish()
+│   │   └── schemas.ts      ← Zod schemas espelhando DTOs do backend
+│   ├── hooks/              ← useAuth(), useWorkout(), useTimer()
+│   ├── stores/             ← Zustand stores (auth, activeSession)
+│   ├── components/         ← UI components reutilizáveis
+│   └── utils/              ← Formatters, constants
+└── assets/
+```
 
 ---
 
