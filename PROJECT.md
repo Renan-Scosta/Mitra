@@ -133,13 +133,12 @@ mitra-mobile/
 ## 4. Estrutura do Projeto
 
 ```
-Mitra-App/
+Mitra/
 ├── PROJECT.md                         ← VOCÊ ESTÁ AQUI
 ├── .gitignore
-└── mitra/mitra/                       ← Módulo Maven principal
-    ├── pom.xml
-    ├── mvnw / mvnw.cmd
-    └── src/
+├── pom.xml
+├── mvnw / mvnw.cmd
+└── src/
         ├── main/
         │   ├── java/com/mitra/
         │   │   ├── MitraApplication.java
@@ -476,7 +475,6 @@ O `DatabaseSeeder` (ativo apenas fora do perfil `test`) cria automaticamente:
 
 ### Rodando testes
 ```bash
-cd mitra/mitra
 ./mvnw test          # Unix
 .\mvnw.cmd test      # Windows
 ```
@@ -707,7 +705,6 @@ A API ficará acessível em `http://localhost:8080`. O PostgreSQL rodará na por
 - Variável `DB_PASSWORD` configurada
 
 ```bash
-cd mitra/mitra
 ./mvnw spring-boot:run     # Sobe em http://localhost:8080
 ```
 

@@ -27,11 +27,9 @@ jobs:
 
       - name: Make Maven Wrapper executable
         run: chmod +x ./mvnw
-        working-directory: mitra/mitra
 
       - name: Build and Verify (Tests, Jacoco, Spotless)
         run: ./mvnw verify --no-transfer-progress
-        working-directory: mitra/mitra
         env:
           JWT_SECRET: ci-test-secret-that-is-at-least-32-characters-long
           GOOGLE_CLIENT_ID: ci-dummy
@@ -68,8 +66,8 @@ jobs:
       - name: Build and Push Docker Image
         uses: docker/build-push-action@v6
         with:
-          context: ./mitra/mitra
-          file: ./mitra/mitra/Dockerfile
+          context: .
+          file: ./Dockerfile
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}

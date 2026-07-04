@@ -1,4 +1,16 @@
 # ========================================
+# Maven & Build Output
+# ========================================
+HELP.md
+target/
+.mvn/wrapper/maven-wrapper.jar
+!**/src/main/**/target/
+!**/src/test/**/target/
+build/
+!**/src/main/**/build/
+!**/src/test/**/build/
+
+# ========================================
 # IDE & Editor
 # ========================================
 .vscode/
@@ -7,10 +19,23 @@
 *.iml
 *.ipr
 /out/
+.apt_generated
+.classpath
+.factorypath
+.project
+.settings
+.springBeans
+.sts4-cache
+/nbproject/private/
+/nbbuild/
+/dist/
+/nbdist/
+/.nb-gradle/
 
 # ========================================
 # Sensitive & Local Config
 # ========================================
+src/main/resources/application.properties
 *.env
 .env
 .env.*

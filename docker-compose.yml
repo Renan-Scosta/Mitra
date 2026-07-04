@@ -20,7 +20,7 @@ services:
 
   app:
     build:
-      context: ./mitra/mitra
+      context: .
       dockerfile: Dockerfile
     container_name: mitra-app
     depends_on:
